@@ -1,18 +1,18 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
+import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
+import org.firstinspires.ftc.teamcode.Utils.Potentiometers;
 
 public class Intake {
 
-    public enum States {
-        INIT,
-        NEUTRAL,
-        COLLECT,
-        SPITOUT,
-        TRANSFER
-    }
+    public static boolean inCollectPosition;
+    public static boolean collecting;
+    public static boolean spittingGround;
 
-    public static States currentState;
+    private static double openerCollect = 0.4;
+    private static double openerCollectWide = 0.4;
+    private static double openerClosed = 0;
 
     private static double intakeRightCollect = 1;
     private static double intakeRightSpitout = -1;
@@ -20,64 +20,104 @@ public class Intake {
     private static double intakeLeftCollect = -1;
     private static double intakeLeftSpitout = 1;
 
-    private static double intakeUpDownInit = 0.87;
-    private static double intakeUpDownNeutral = 0.87;
-    private static double intakeUpDownCollect = 0.87;
-    private static double intakeUpDownTransfer = 0.0;
+    private static double intakeUpDownInit = 0.2;
+    private static double intakeUpDownNeutral = 0.70;
+    private static double intakeUpDownCollect = 0.95;
+    private static double intakeUpDownTransfer = 0.02;
+    private static double intakeUpDownParkSpecimenSide = 0.2;
 
-    public static void retractSlides(float dt){
-        if (currentState == States.INIT) return;
-        if (currentState == States.TRANSFER) return;
-        FrontSlides.retract(dt);
-    }
+    private static double intakeUpDownCollectMaxOffset = -0.01;
 
-    public static void extendSlides(float dt){
-        if (currentState == States.INIT) return;
-        if (currentState == States.TRANSFER) return;
-        FrontSlides.extend(dt);
-    }
-
-    private static void process(){
-        switch (currentState){
-            case INIT:
-                Hardware.intakeUpDown.setPosition(intakeUpDownInit);
-                Hardware.intakeLeft.setPower(0);
-                Hardware.intakeRight.setPower(0);
-                FrontSlides.initPosition();
-                break;
-            case NEUTRAL:
-                Hardware.intakeUpDown.setPosition(intakeUpDownNeutral);
-                Hardware.intakeLeft.setPower(0);
-                Hardware.intakeRight.setPower(0);
-                break;
-            case COLLECT:
-                Hardware.intakeUpDown.setPosition(intakeUpDownCollect);
-                Hardware.intakeLeft.setPower(intakeLeftCollect);
-                Hardware.intakeRight.setPower(intakeRightCollect);
-                break;
-            case SPITOUT:
-                Hardware.intakeUpDown.setPosition(intakeUpDownCollect);
-                Hardware.intakeLeft.setPower(intakeLeftSpitout);
-                Hardware.intakeRight.setPower(intakeRightSpitout);
-                break;
-            case TRANSFER:
-                Hardware.intakeUpDown.setPosition(intakeUpDownTransfer);
-                Hardware.intakeLeft.setPower(0);
-                Hardware.intakeRight.setPower(0);
-                FrontSlides.transferPosition();
-                break;
+    public static void updateCollectPosition(){
+        if (inCollectPosition){
+            double position = intakeUpDownCollect + FrontSlides.getCurrentPercentage() * intakeUpDownCollectMaxOffset;
+            Hardware.intakeUpDown.setPosition(position);
         }
     }
 
-    public static void setCurrentState(States newState){
-        newState = CollectToNeutralBehaviour(newState);
-        currentState = newState;
-        process();
+    public static void init(){
+        inCollectPosition = false;
+        collecting = false;
+        spittingGround = false;
+        Hardware.intakeLeft.setPower(0);
+        Hardware.intakeRight.setPower(0);
+        Hardware.intakeUpDown.setPosition(intakeUpDownInit);
+        Hardware.opener.setPosition(openerClosed);
+    }
+    public static void neutral(){
+        inCollectPosition = false;
+        Hardware.opener.setPosition(openerClosed);
+        Hardware.intakeUpDown.setPosition(intakeUpDownNeutral);
+    }
+    public static void ground(){
+        inCollectPosition = true;
+        Hardware.intakeUpDown.setPosition(intakeUpDownCollect);
+        Hardware.opener.setPosition(openerClosed);
+        stopCollect();
+    }
+    public static void collect(){
+        inCollectPosition = true;
+        collecting = true;
+        spittingGround = false;
+        Hardware.intakeLeft.setPower(intakeLeftCollect);
+        Hardware.intakeRight.setPower(intakeRightCollect);
+        Hardware.intakeUpDown.setPosition(intakeUpDownCollect);
+        Hardware.opener.setPosition(openerCollect);
+    }
+    public static void collectWide(){
+        inCollectPosition = true;
+        collecting = true;
+        spittingGround = false;
+        Hardware.intakeLeft.setPower(intakeLeftCollect);
+        Hardware.intakeRight.setPower(intakeRightCollect);
+        Hardware.intakeUpDown.setPosition(intakeUpDownCollect);
+        Hardware.opener.setPosition(openerCollectWide);
+    }
+    public static void stopCollect(){
+        collecting = false;
+        spittingGround = false;
+        Hardware.intakeLeft.setPower(0);
+        Hardware.intakeRight.setPower(0);
+        Hardware.opener.setPosition(openerClosed);
+    }
+    public static void spitoutSlow(){
+        inCollectPosition = false;
+        collecting = false;
+        spittingGround = false;
+        Hardware.intakeLeft.setPower(intakeLeftSpitout / 4);
+        Hardware.intakeRight.setPower(intakeRightSpitout / 4);
+        Hardware.opener.setPosition(openerCollect);
+    }
+    public static void spitoutGround(){
+        inCollectPosition = true;
+        collecting = false;
+        spittingGround = true;
+        Hardware.intakeLeft.setPower(intakeLeftSpitout);
+        Hardware.intakeRight.setPower(intakeRightSpitout);
+        Hardware.intakeUpDown.setPosition(intakeUpDownCollect);
+        Hardware.opener.setPosition(openerCollect);
+    }
+    public static void transfer(){
+        inCollectPosition = false;
+        collecting = false;
+        spittingGround = false;
+        Hardware.opener.setPosition(openerClosed);
+        Hardware.intakeLeft.setPower(0);
+        Hardware.intakeRight.setPower(0);
+        Hardware.intakeUpDown.setPosition(intakeUpDownTransfer);
     }
 
-    private static States CollectToNeutralBehaviour(States state){
-        if(currentState == States.COLLECT && state == States.COLLECT) return States.NEUTRAL;
-        if(currentState == States.SPITOUT && state == States.SPITOUT) return States.NEUTRAL;
-        return state;
+    public static void startCollect(){
+        Hardware.intakeLeft.setPower(intakeLeftCollect);
+        Hardware.intakeRight.setPower(intakeRightCollect);
     }
+
+    public static void parkSpecimenSide(){
+        inCollectPosition = false;
+        collecting = false;
+        spittingGround = false;
+        Hardware.intakeUpDown.setPosition(intakeUpDownParkSpecimenSide);
+    }
+
+
 }

@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode.Hardware;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-
-import org.firstinspires.ftc.teamcode.Hardware.RevColorSensor.RevColorSensorV3;
-import org.firstinspires.ftc.teamcode.Hardware.revex.ExpansionHubEx;
 
 
 public class HardwareUtils {
@@ -30,20 +31,18 @@ public class HardwareUtils {
 
     public static CRServo getCRServo ( String name) {return hardwareMap.get(CRServo.class, name);}
 
+    public static DistanceSensor getDSensor ( String name) {return hardwareMap.get(DistanceSensor.class, name);}
+
+    public static DigitalChannel getDigitalChannel (String name) {return hardwareMap.get(DigitalChannel.class, name);}
+
+    public static RevColorSensorV3 getColorSensor(String name) {return hardwareMap.get(RevColorSensorV3.class, name);}
+
     public static AnalogInput getAnalogInput(String name) {
         return hardwareMap.get(AnalogInput.class, name);
     }
 
     public static TouchSensor getTouchSensor(String name) {
         return hardwareMap.get(TouchSensor.class, name);
-    }
-
-    public static RevColorSensorV3 getColorSensor(String name) {
-        return hardwareMap.get(RevColorSensorV3.class, name);
-    }
-
-    public static ExpansionHubEx getExpansionHub(String name){
-        return hardwareMap.get(ExpansionHubEx.class, name);
     }
 
     public static ModernRoboticsI2cGyro getGyro(String name){

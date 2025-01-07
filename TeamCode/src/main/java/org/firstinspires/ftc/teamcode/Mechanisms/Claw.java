@@ -5,86 +5,87 @@ import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 
 public class Claw {
 
-    public enum States{
-        INIT,
-        TRANSFER,
-        BASKET,
-        CHAMBER,
-        SCORE
+    private static double armLeftInit = 0.05;
+    private static double armLeftTransfer = 0.01;
+    private static double armLeftHighBasket = 0.53;
+    private static double armLeftLowBasket = 0.49;
+    private static double armLeftLowChamber = 0.20;
+    private static double armLeftHighChamber = 0.38;
+    private static double armLeftPark = 0.57;
+
+    private static double armRightInit = 0.61;
+    private static double armRightTransfer = 0.66;
+    private static double armRightHighBasket = 0.13;
+    private static double armRightLowBasket = 0.17;
+    private static double armRightLowChamber = 0.46;
+    private static double armRightHighChamber = 0.28;
+    private static double armRightPark = 0.09;
+
+    private static double rotateClawInit = 0.44;
+    private static double rotateClawTransfer = 0.44;
+    private static double rotateClawChamber = 0.48;
+    private static double rotateClawMiddle = 0.48;
+    private static double rotateClawRight = 0.3;
+    private static double rotateClawLeft = 0.66;
+
+    private static double clawClosedSample = 0.68;
+    private static double clawClosed = 0.66;
+    private static double clawOpen = 0.6;
+    private static double clawOpenScore = 0.43;
+
+    public static void armsInit(){
+        Hardware.armLeft.setPosition(armLeftInit);
+        Hardware.armRight.setPosition(armRightInit);
+    }
+    public static void armsTransfer(){
+        Hardware.armLeft.setPosition(armLeftTransfer);
+        Hardware.armRight.setPosition(armRightTransfer);
+    }
+    public static void armsHighBasket(){
+        Hardware.armLeft.setPosition(armLeftHighBasket);
+        Hardware.armRight.setPosition(armRightHighBasket);
+    }
+    public static void armsLowBasket(){
+        Hardware.armLeft.setPosition(armLeftLowBasket);
+        Hardware.armRight.setPosition(armRightLowBasket);
+    }
+    public static void armsHighChamber(){
+
+        Hardware.armLeft.setPosition(armLeftHighChamber);
+        Hardware.armRight.setPosition(armRightHighChamber);
+    }
+    public static void armsLowChamber(){
+        Hardware.armLeft.setPosition(armLeftLowChamber);
+        Hardware.armRight.setPosition(armRightLowChamber);
+    }
+    public static void armsPark(){
+        Hardware.armLeft.setPosition(armLeftPark);
+        Hardware.armRight.setPosition(armRightPark);
     }
 
-    public static States currentState;
+    public static void clawAngleInit(){Hardware.rotateClaw.setPosition(rotateClawInit);}
+    public static void clawAngleTransfer(){Hardware.rotateClaw.setPosition(rotateClawTransfer);}
+    public static void clawAngleChamber(){Hardware.rotateClaw.setPosition(rotateClawChamber);}
 
-    private static double armLeftInit = 0.8;
-    private static double armLeftTransfer = 0.85;
-    private static double armLeftBasket = 0.48;
-    private static double armLeftChamber = 0.48;
+    public static void clawAngleMiddle(){Hardware.rotateClaw.setPosition(rotateClawMiddle);}
+    public static void clawAngleLeft(){Hardware.rotateClaw.setPosition(rotateClawLeft);}
+    public static void clawAngleRight(){Hardware.rotateClaw.setPosition(rotateClawRight);}
 
-    private static double armRightInit = 0.08;
-    private static double armRightTransfer = 0.03;
-    private static double armRightBasket = 0.42;
-    private static double armRightChamber = 0.42;
+    public static void closeClawSample(){Hardware.claw.setPosition(clawClosedSample);}
+    public static void closeClaw(){Hardware.claw.setPosition(clawClosed);}
+    public static void openClaw(){Hardware.claw.setPosition(clawOpen);}
+    public static void openClawScore(){Hardware.claw.setPosition(clawOpenScore);}
 
-    private static double rotateClawInit = 0.48;
-    private static double rotateClawTransfer = 0.46;
-    private static double rotateClawBasket = 0.3;
-    private static double rotateClawChamber = 0.4;
-
-    private static double clawClosed = 0;
-    private static double clawOpen = 0.14;
-
-    private static void closeClaw(){
-        Hardware.claw.setPosition(clawClosed);
+    public static void clawInit(){
+        closeClaw();
+        clawAngleInit();
+        armsInit();
     }
 
-    private static void openClaw(){
-        Hardware.claw.setPosition(clawOpen);
+    public static void clawInitAuto(){
+        closeClawSample();
+        clawAngleInit();
+        armsInit();
     }
 
-    private static void process(){
-        switch (currentState){
-            case INIT:
-                Hardware.armLeft.setPosition(armLeftInit);
-                Hardware.armRight.setPosition(armRightInit);
-                Hardware.rotateClaw.setPosition(rotateClawInit);
-                closeClaw();
-                BackSlides.initPosition();
-            case TRANSFER:
-                Hardware.armLeft.setPosition(armLeftTransfer);
-                Hardware.armRight.setPosition(armRightTransfer);
-                Hardware.rotateClaw.setPosition(rotateClawTransfer);
-                BackSlides.transferPosition();
-                openClaw();
-                ActionDelayer.time(800, Claw :: closeClaw);
-            case BASKET:
-                Hardware.armLeft.setPosition(armLeftBasket);
-                Hardware.armRight.setPosition(armRightBasket);
-                Hardware.rotateClaw.setPosition(rotateClawBasket);
-                BackSlides.setCurrentMode(BackSlides.ScoringModes.BASKET);
-                BackSlides.setLevel(0);
-            case CHAMBER:
-                Hardware.armLeft.setPosition(armLeftChamber);
-                Hardware.armRight.setPosition(armRightChamber);
-                Hardware.rotateClaw.setPosition(rotateClawChamber);
-                BackSlides.setCurrentMode(BackSlides.ScoringModes.CHAMBER);
-                BackSlides.setLevel(0);
-            case SCORE:
-                openClaw();
-        }
-    }
-
-    public static void setCurrentState(States newState){
-        currentState = newState;
-        process();
-    }
-
-    public static void raiseLevel(){
-        if (currentState != States.BASKET && currentState != States.CHAMBER) return;
-        BackSlides.raiseLevel();
-    }
-
-    public static void lowerLevel(){
-        if (currentState != States.BASKET && currentState != States.CHAMBER) return;
-        BackSlides.lowerLevel();
-    }
 }

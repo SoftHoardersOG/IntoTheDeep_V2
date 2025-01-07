@@ -1,56 +1,73 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
+import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 
 public class BackSlides {
 
-    public enum ScoringModes{
-        BASKET,
-        CHAMBER
-    }
+    public static boolean scoringPosition;
 
-    private static ScoringModes currentMode;
-
-    private static int slidesInit = 0;
-    private static int slidesTransfer = 0;
-    private static int basketLevels[] = {0, 0};
-    private static int chamberLevels[] = {0, 0};
-
-    private static int level = 0;
+    private static int slidesInit = -13;
+    private static int slidesInitLower = 35;
+    public static int slidesTransfer = -5;
+    private static int basketLevels[] = {-400, -1000};
+    private static int chamberLevels[] = {-130, -345};
 
     public static void initPosition(){
+        Hardware.backSlides.setPower(1);
+//        lowerSlidesGradual();
         Hardware.backSlides.setTargetPosition(slidesInit);
+        scoringPosition = false;
     }
 
     public static void transferPosition(){
+        Hardware.backSlides.setPower(1);
         Hardware.backSlides.setTargetPosition(slidesTransfer);
+        scoringPosition = false;
     }
 
-    public static void setCurrentMode(ScoringModes mode){
-        currentMode = mode;
+    public static void lowBasket(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(basketLevels[0]);
+        scoringPosition = true;
+    }
+    public static void highBasket(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(basketLevels[1]);
+        scoringPosition = true;
+    }
+    public static void lowChamber(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(chamberLevels[0]);
+        scoringPosition = true;
+    }
+    public static void highChamber(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(chamberLevels[1]);
+        scoringPosition = true;
     }
 
-    public static void setLevel(int _level){
-        level = _level;
-        updateLevel();
+    public static void lowChamberFinish(){
+        Hardware.backSlides.setTargetPosition(slidesInit);
+        scoringPosition = true;
     }
 
-    public static void raiseLevel(){
-        level++;
-        level = Math.min(level, 1);
-        updateLevel();
+    public static boolean reachedHighBasket(){
+        int current = -Hardware.backSlides.getCurrentPosition();
+        int target = -basketLevels[1];
+        return current - 150 <= target && target <= current + 150;
     }
 
-    public static void lowerLevel(){
-        level--;
-        level = Math.max(level, 0);
-        updateLevel();
-    }
-
-    private static void updateLevel(){
-        if (currentMode == ScoringModes.BASKET)
-            Hardware.backSlides.setTargetPosition(basketLevels[level]);
-        else if (currentMode == ScoringModes.CHAMBER)
-                Hardware.backSlides.setTargetPosition(chamberLevels[level]);
+    private static void lowerSlidesGradual() {
+        Hardware.backSlides.setTargetPosition(slidesInit);
+        ActionDelayer.time(350, () -> {
+            ActionDelayer.condition(() -> Math.abs(Hardware.backSlides.getCurrentPosition()) < 50, () -> {
+                Hardware.backSlides.setTargetPosition(slidesInitLower);
+                ActionDelayer.condition(() -> Math.abs(Hardware.backSlides.getCurrentPosition()) < 3, () -> {
+                    Hardware.backSlides.setTargetPosition(slidesInit);
+                    Hardware.backSlides.setPower(0);
+                });
+            });
+        });
     }
 }

@@ -4,7 +4,24 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ActionDelayer {
+    public static double timeScale = 1;
+
+    public static void setTimeScale(double _timeScale){
+        timeScale = _timeScale;
+    }
+
     public static void time(int msDelay, Lambda lambda){
+        msDelay = msDelay;
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                lambda.run();
+            }
+        }, msDelay);
+    }
+
+    public static void time(int msDelay, Lambda lambda, double customTimeScale){
+        msDelay = (int)(msDelay * (1 / customTimeScale));
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {

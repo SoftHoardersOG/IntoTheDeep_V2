@@ -8,9 +8,9 @@ import org.firstinspires.ftc.teamcode.Utils.ConditionChecker;
 import org.firstinspires.ftc.teamcode.Utils.Initializations;
 import org.firstinspires.ftc.teamcode.Utils.LedManager;
 
-@TeleOp(group = "main")
-public class MainTeleOp extends LinearOpMode {
-    @Override
+@TeleOp(group = "telemetry")
+public class MainTeleOpTelemetry extends LinearOpMode {
+   @Override
     public void runOpMode() {
 //        drive.followTrajectorySequence(drive.trajectorySequenceBuilder(drive.getPoseEstimate()).lineToLinearHeading(drive.getPoseEstimate()).build());
         Initializations.initTeleOp(gamepad1, gamepad2);
@@ -27,7 +27,7 @@ public class MainTeleOp extends LinearOpMode {
             else if (gamepad1.options) {
                 Movement.peAnglia = true;
             }
-            TelemetryManager.manageOptimizedTeleOp();
+            TelemetryManager.manage();
             ActionManager.updateInit();
         }
 //        FrontSlides.release();
@@ -36,8 +36,9 @@ public class MainTeleOp extends LinearOpMode {
             LedManager.update();
             Movement.run(gamepad1);
             ActionManager.control(gamepad1, gamepad2);
-            TelemetryManager.manageOptimizedTeleOp();
-            Hardware.drive.update();
+            TelemetryManager.manage();
+            Hardware.climbRightSlides.setPower(0);
+            Hardware.climbLeftSlides.setPower(0);
         }
         ConditionChecker.opModeStopped = true;
     }

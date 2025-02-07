@@ -65,6 +65,10 @@ public class FrontSlides {
         ActionDelayer.condition(FrontSlides::reachedInit, FrontSlides::updatePositions);
     }
 
+    public static boolean pullingFully(){
+        return Hardware.frontSlides.getTargetPosition() < slidesInit - 600;
+    }
+
     public static void findNewInitPosition(){
         power = 1;
         start();
@@ -74,9 +78,18 @@ public class FrontSlides {
         calibrating = true;
     }
 
-    public static void initPosition(){
-        power = 1;
+    public static void findNewInitPositionSlower(){
+        power = 0.4;
         start();
+        Hardware.frontSlides.setTargetPosition(slidesInit - 700);
+        init = false;
+        transfer = false;
+        calibrating = true;
+    }
+
+    public static void initPosition(){
+//        power = 1;
+//        start();
         Hardware.frontSlides.setTargetPosition(slidesInit);
         init = true;
         transfer = false;
@@ -162,7 +175,7 @@ public class FrontSlides {
     }
 
     public static void extend(float dt){
-        Hardware.frontSlides.setTargetPosition(slidesExtended); // position
+        Hardware.frontSlides.setTargetPosition(slidesExtended + 50); // position
         power = 1;
         init = false;
         transfer = false;

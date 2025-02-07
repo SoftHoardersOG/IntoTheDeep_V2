@@ -1,8 +1,15 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import static org.firstinspires.ftc.teamcode.Hardware.Hardware.telemetry;
+
+import android.drm.DrmStore;
+
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 //import org.firstinspires.ftc.teamcode.Mechanisms.BackSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.BackSlides;
@@ -10,7 +17,9 @@ import org.firstinspires.ftc.teamcode.Mechanisms.Claw;
 import org.firstinspires.ftc.teamcode.Mechanisms.Climb;
 import org.firstinspires.ftc.teamcode.Mechanisms.FrontSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
+import org.firstinspires.ftc.teamcode.Mechanisms.Sweeper;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
+import org.firstinspires.ftc.teamcode.Utils.ColorSensor;
 import org.firstinspires.ftc.teamcode.Utils.OneTap;
 import org.firstinspires.ftc.teamcode.Utils.Potentiometers;
 
@@ -18,13 +27,21 @@ import java.util.Objects;
 
 
 public class ActionManager {
+
     private enum ClimbLevel {
         NOT_SELECTED,
         FIRST_LEVEL,
         SECOND_LEVEL
     }
 
+    public enum TransferStyles {
+        UNASSISTED,
+        AUTO_TRANSFER_BASKET,
+        AUTO_TRANSFER_SPECIMEN
+    }
+
     private static ClimbLevel selectedClimbLevel;
+    public static TransferStyles transferStyle;
 
     public static float dt;
     public static long previousTime;
@@ -36,7 +53,7 @@ public class ActionManager {
     private static OneTap square1 = new OneTap();
     private static OneTap triangle1 = new OneTap();
     private static OneTap circle1 = new OneTap();
-    private static OneTap dpad1down = new OneTap();
+    private static OneTap dpad2up = new OneTap();
     private static OneTap dpad1left = new OneTap();
 
     private static OneTap square2 = new OneTap();
@@ -51,22 +68,30 @@ public class ActionManager {
 
     private static OneTap climbConfirmation = new OneTap();
     private static OneTap climbCancelConfirmation = new OneTap();
+    private static OneTap autoTransferOneTap = new OneTap();
 
     private static int colorCycleTime;
     public static boolean scored;
     private static boolean lowChamberCase;
+    public static boolean retractedSpecimen;
     public static boolean transferring;
+    public static boolean sampleOutTransfer;
+    public static boolean backSlidesTilt;
+    public static boolean slidesLocked;
     public static String transferFinishScoreCase;
     public static String climbProgress;
 
     private static double transferTimeScale = 2.3;
     private static double transferSpecimenTimeScale = 1.7;
-    private static double unHookTimeScale = 2; // 0.75
+    private static double unHookTimeScale = 0.8; // 0.75
 
     private static long firstTimeTransfer;
 
     public static void init(){
+        sampleOutTransfer = true;
+        retractedSpecimen = true;
         selectedClimbLevel = ClimbLevel.NOT_SELECTED;
+        transferStyle = TransferStyles.AUTO_TRANSFER_BASKET;
         climbProgress = "begin";
         colorCycleTime = 1000;
         //manageLeds();
@@ -75,6 +100,12 @@ public class ActionManager {
         scored = false;
         lowChamberCase = false;
         transferring = false;
+        backSlidesTilt = false;
+        slidesLocked = false;
+    }
+
+    public static void updateInit(){
+        Claw.update(Hardware.backSlides.getCurrentPosition(), Hardware.backSlides.getTargetPosition());
     }
 
     public static void control(Gamepad _gamepad1, Gamepad _gamepad2){
@@ -83,9 +114,22 @@ public class ActionManager {
 
         calculateDelta();
 
+        autoTransferOneTap.update((long)(dt * 1000));
+
+        SelectTransferStyle();
+
+        if (transferring && Hardware.intakeUpDown.getPosition() != Intake.intakeUpDownTransfer){
+            Intake.transfer();
+        }
+
+        Hardware.odometry.update();
+
+        susjos();
+        Sweep();
+        Transfer();
         IntakeCheck();
+        SpitWrongSample();
         IntakeUpDown();
-        calibrateFrontSlides();
         manageFrontSlides();
         lowBasket();
         highBasket();
@@ -93,13 +137,13 @@ public class ActionManager {
         highChamber();
         rotateClawScoring();
         score();
-        Transfer();
-        TransferSpecimen();
+        retractSpecimen();
         ClimbCancel();
-//        rotateRobot();
         selectClimbLevel();
         Climbing();
         Inspection();
+
+        Claw.update(Hardware.backSlides.getCurrentPosition(), Hardware.backSlides.getTargetPosition());
 
         Intake.updateCollectPosition();
         FrontSlides.update();
@@ -108,10 +152,16 @@ public class ActionManager {
     public static void controlAuto(){
         calculateDelta();
 
+        autoTransferOneTap.update((long)(dt * 1000));
+
+        Hardware.odometry.update();
+
         lowBasketAuto();
         highBasketAuto();
         lowChamberAuto();
         highChamberAuto();
+
+        Claw.update(Hardware.backSlides.getCurrentPosition(), Hardware.backSlides.getTargetPosition());
 
         Intake.updateCollectPosition();
     }
@@ -143,6 +193,29 @@ public class ActionManager {
         previousTime = System.currentTimeMillis();
         dt /= 1000;
     }
+
+    private static void Sweep(){
+        if (dpad2up.onPress(gamepad2.dpad_up)){
+            sweepAction();
+        }
+    }
+
+    public static void sweepAction(){
+        Sweeper.sweep();
+    }
+
+    private static void SelectTransferStyle(){
+        if (gamepad2.share){
+            transferStyle = TransferStyles.UNASSISTED;
+        }
+        else if (gamepad2.left_stick_button){
+            transferStyle = TransferStyles.AUTO_TRANSFER_BASKET;
+        }
+        else if (gamepad2.right_stick_button){
+            transferStyle = TransferStyles.AUTO_TRANSFER_SPECIMEN;
+        }
+    }
+
     private static void IntakeCheck(){
         if (transferring) return;
         if(cross1.onPress(gamepad1.cross)){
@@ -165,6 +238,13 @@ public class ActionManager {
         }
     }
 
+    private static void SpitWrongSample(){
+        if (ColorSensor.collectedWrongSample()){
+            Intake.spitoutGround();
+            ActionDelayer.time(200, Intake :: collect);
+        }
+    }
+
     private static void IntakeUpDown(){
         if (transferring) return;
         if (triangle1.onPress(gamepad1.triangle)){
@@ -178,14 +258,14 @@ public class ActionManager {
         }
     }
 
-    private static void calibrateFrontSlides(){
-        if (dpad1down.onPress(gamepad1.dpad_down) && !FrontSlides.calibrating){
-            FrontSlides.findNewInitPosition();
-        }
-    }
+//    private static void calibrateFrontSlides(){
+//        if (dpad1down.onPress(gamepad1.dpad_down) && !FrontSlides.calibrating){
+//            FrontSlides.findNewInitPosition();
+//        }
+//    }
 
     private static void manageFrontSlides(){
-        if (transferring){
+        if (slidesLocked || transferring || !retractedSpecimen){
             return;
         }
         if (gamepad1.right_bumper){
@@ -206,8 +286,7 @@ public class ActionManager {
     }
 
     public static void lowBasketPos(){
-        Claw.armsLowBasket();
-        ActionDelayer.time(250, Claw::clawAngleMiddle);
+        ActionDelayer.time(100, Claw::clawPositionLowBasket);
         BackSlides.lowBasket();
         Claw.closeClawSample();
         scored = false;
@@ -237,8 +316,7 @@ public class ActionManager {
     }
 
     public static void highBasketPos(){
-        Claw.armsHighBasket();
-        ActionDelayer.time(250, Claw::clawAngleMiddle);
+        ActionDelayer.time(100, Claw::clawPositionHighBasket);
         BackSlides.highBasket();
         Claw.closeClawSample();
         scored = false;
@@ -268,8 +346,7 @@ public class ActionManager {
     }
 
     public static void lowChamberPos(){
-        Claw.armsLowChamber();
-        ActionDelayer.time(250, Claw::clawAngleChamber);
+        ActionDelayer.time(100, Claw::clawPositionLowChamber);
         BackSlides.lowChamber();
         Claw.closeClawSample();
         scored = false;
@@ -299,8 +376,7 @@ public class ActionManager {
     }
 
     public static void highChamberPos(){
-        Claw.armsHighChamber();
-        ActionDelayer.time(250, Claw::clawAngleChamber);
+        ActionDelayer.time(100, Claw::clawPositionHighChamber);
         BackSlides.highChamber();
         Claw.closeClawSample();
         scored = false;
@@ -341,16 +417,16 @@ public class ActionManager {
 //    }
 
     private static void rotateClawScoring(){
-        if (!BackSlides.scoringPosition || lowChamberCase) return;
-        if(gamepad2.dpad_left){
-            Claw.clawAngleRight();
-        }
-        else if(gamepad2.dpad_up){
-            Claw.clawAngleMiddle();
-        }
-        else if(gamepad2.dpad_right){
-            Claw.clawAngleLeft();
-        }
+//        if (!BackSlides.scoringPosition || lowChamberCase) return;
+//        if(gamepad2.dpad_left){
+//            Claw.clawAngleRight();
+//        }
+//        else if(gamepad2.dpad_up){
+//            Claw.clawAngleMiddle();
+//        }
+//        else if(gamepad2.dpad_right){
+//            Claw.clawAngleLeft();
+//        }
     }
 
     public static void releaseSample(){
@@ -366,10 +442,9 @@ public class ActionManager {
     }
 
     public static void resetScoring(){
-        ActionDelayer.time(0, Claw::closeClaw);
-        ActionDelayer.time(0, Claw::clawAngleInit);
-        ActionDelayer.time(200, Claw::armsInit);
-        ActionDelayer.time(150, BackSlides::initPosition);
+        Claw.closeClaw();
+        Claw.clawPositionInit();
+        ActionDelayer.time(250, BackSlides::initPosition);
         scored = false;
     }
 
@@ -383,11 +458,22 @@ public class ActionManager {
         }
     }
 
+    private static void retractSpecimen(){
+        if (transferStyle == TransferStyles.AUTO_TRANSFER_SPECIMEN){
+            if (autoTransferOneTap.onPressSmooth(ColorSensor.collectedAllianceSpecificSample(), 300)) {
+                retractedSpecimen = false;
+                Intake.neutral();
+                ActionDelayer.time(200, Intake::stopCollect);
+                ActionDelayer.time(200, FrontSlides :: retractFullyReleaseAfter);
+                ActionDelayer.time(1100, () -> retractedSpecimen = true);
+            }
+        }
+    }
 
     ///// TRANSFER /////
 
     private static void closeClawDelay(){
-        Claw.armsTransfer();
+//        Claw.clawPositionTransfer();
         ActionDelayer.time(300, Claw::closeClawSample, transferTimeScale);
     }
 
@@ -395,38 +481,37 @@ public class ActionManager {
         Intake.stopCollect();
         ActionDelayer.time(100, Intake::spitoutSlow, transferTimeScale);
         ActionDelayer.time(200, BackSlides::lowChamber, transferTimeScale);
-        ActionDelayer.time(300, Claw::armsLowChamber, transferTimeScale);
+//        ActionDelayer.time(300, Claw::clawPositionLowChamber, transferTimeScale);
         ActionDelayer.time(400, FrontSlides :: initPosition, transferTimeScale);
         ActionDelayer.time(400, () -> transferring = false, transferTimeScale);
         ActionDelayer.time(500, Intake::stopCollect, transferTimeScale);
-        ActionDelayer.time(550, Claw::clawAngleChamber, transferTimeScale);
-        ActionDelayer.time(600, FrontSlides::initPosition, transferTimeScale);
-        ActionDelayer.time(800, FrontSlides::initPosition, transferTimeScale);
-        ActionDelayer.time(900, Intake::neutral, transferTimeScale);
+        ActionDelayer.time(550, Claw::clawPositionLowChamber, transferTimeScale);
+        ActionDelayer.time(1200, Intake::neutral, transferTimeScale);
         ActionDelayer.time(1200, FrontSlides::release, transferTimeScale);
+        ActionDelayer.time(3000, () -> sampleOutTransfer = true, transferTimeScale);
+        ActionDelayer.time(3000, () -> slidesLocked = false, transferTimeScale);
         scored = false;
         lowChamberCase = true;
     }
 
     private static void prepareClawTransfer(){
         Claw.closeClaw();
-        Claw.clawAngleTransfer();
-        ActionDelayer.time(100, Claw::armsTransfer, transferTimeScale);
+        Claw.clawPositionTransfer();
+        ActionDelayer.time(600, Claw :: openClaw, transferTimeScale);
         BackSlides.initPosition();
     }
 
     private static void prepareClawTransferSpecimen(){
         Claw.closeClaw();
-        Claw.clawAngleTransfer();
-        ActionDelayer.time(100, Claw::armsInit, transferSpecimenTimeScale);
+        Claw.clawPositionTransfer();
         BackSlides.initPosition();
     }
 
     private static void prepareTransfer(){
         Intake.startCollect();
         BackSlides.transferPosition();
-        Claw.clawAngleTransfer();
-        ActionDelayer.time(100, Claw::openClaw, transferTimeScale);
+//        Claw.clawPositionTransfer();
+//        ActionDelayer.time(100, Claw::openClaw, transferTimeScale);
         Intake.transfer();
     }
 
@@ -436,7 +521,7 @@ public class ActionManager {
     }
 
     private static void executeTransferSpecimen(){
-        Claw.armsTransfer();
+        Claw.clawPositionTransfer();
         ActionDelayer.time(200, ActionManager::closeClawDelay);
         ActionDelayer.time(200, ActionManager::exitTransfer);
     }
@@ -457,43 +542,62 @@ public class ActionManager {
         ActionDelayer.setTimeScale(transferTimeScale);
         transferFinishScoreCase = scoreCase;
         transferring = true;
+        sampleOutTransfer = false;
         prepareClawTransfer();
         prepareTransfer();
-//        ActionDelayer.condition(() -> Potentiometers.intakeUpDownCloseToTransfer(), FrontSlides :: findNewInitPosition);
-        ActionDelayer.time(200, FrontSlides :: findNewInitPosition);
-//        FrontSlides.findNewInitPosition();
-        ActionDelayer.condition(() -> FrontSlides.reachedInit() && Potentiometers.intakeUpDownCloseToTransfer(), ActionManager::transferAfterReset);
+        ActionDelayer.time(200, ()-> {
+            FrontSlides.findNewInitPosition();
+            ActionManager.transferAfterReset();
+        });
+    }
+
+    private static void retryFrontSlidesPull(){
+        ActionDelayer.time(300, () -> ActionDelayer.condition(() -> !FrontSlides.pullingFully(), FrontSlides :: findNewInitPosition));
+        ActionDelayer.time(300, () -> ActionDelayer.condition(() -> !FrontSlides.pullingFully(), ActionManager :: retryFrontSlidesPull));
+    }
+
+    private static void transferProcess(){
+        ActionDelayer.setTimeScale(transferTimeScale);
+        transferFinishScoreCase = "low_chamber";
+        transferring = true;
+        sampleOutTransfer = false;
+        prepareClawTransfer();
+        prepareTransfer();
+        firstTimeTransfer = System.currentTimeMillis();
+        ActionDelayer.time(200, ()-> {
+            FrontSlides.findNewInitPosition();
+            slidesLocked = true;
+            ActionManager.transferAfterReset();
+//            retryFrontSlidesPull();
+//                ActionDelayer.condition(() ->Potentiometers.intakeUpDownCloseToTransfer(), ActionManager::transferAfterReset);
+        });
     }
 
     private static void Transfer(){
-        if(square2.onPress(gamepad2.square)){
-            ActionDelayer.setTimeScale(transferTimeScale);
-            transferFinishScoreCase = "low_chamber";
-            transferring = true;
-            prepareClawTransfer();
-            prepareTransfer();
-            firstTimeTransfer = System.currentTimeMillis();
-            ActionDelayer.time(200, ()-> {
-                FrontSlides.findNewInitPosition();
-                ActionManager.transferAfterReset();
-//                ActionDelayer.condition(() ->Potentiometers.intakeUpDownCloseToTransfer(), ActionManager::transferAfterReset);
-            });
+        if (square2.onPress(gamepad2.square)){
+            transferProcess();
+        }
+        else if (transferStyle == TransferStyles.AUTO_TRANSFER_SPECIMEN){
+            if (ColorSensor.collectedYellowSample() && sampleOutTransfer) transferProcess();
+        }
+        else if (transferStyle == TransferStyles.AUTO_TRANSFER_BASKET){
+            if ((ColorSensor.collectedYellowSample() || ColorSensor.collectedAllianceSpecificSample()) && sampleOutTransfer) transferProcess();
         }
     }
 
 
-    private static void TransferSpecimen(){
-        if (FrontSlides.calibrating || transferring) return;
-        if(options2.onPress(gamepad2.options)){
-            ActionDelayer.setTimeScale(transferSpecimenTimeScale);
-            transferFinishScoreCase = "low_chamber";
-            transferring = true;
-            prepareClawTransferSpecimen();
-            prepareTransfer();
-            ActionDelayer.condition(Potentiometers :: openerClosed, FrontSlides :: findNewInitPosition);
-            ActionDelayer.condition(() -> !FrontSlides.calibrating && Potentiometers.openerClosed(), ActionManager::transferAfterResetSpecimen);
-        }
-    }
+//    private static void TransferSpecimen(){
+//        if (FrontSlides.calibrating || transferring) return;
+//        if(options2.onPress(gamepad2.options)){
+//            ActionDelayer.setTimeScale(transferSpecimenTimeScale);
+//            transferFinishScoreCase = "low_chamber";
+//            transferring = true;
+//            prepareClawTransferSpecimen();
+//            prepareTransfer();
+//            ActionDelayer.condition(Potentiometers :: openerClosed, FrontSlides :: findNewInitPosition);
+//            ActionDelayer.condition(() -> !FrontSlides.calibrating && Potentiometers.openerClosed(), ActionManager::transferAfterResetSpecimen);
+//        }
+//    }
 
     private static void ClimbCancel(){
 //        if (climbCancelConfirmation.onPress(gamepad2.left_bumper)){
@@ -527,27 +631,58 @@ public class ActionManager {
         }
     }
 
+//    private static void ClimbTiltBackSlides(){
+//        if (backSlidesTilt){
+//            double inclination = Math.abs(Hardware.RobotIMU.getRobotOrientation(AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES).firstAngle);
+//            double start = 30;
+//            double end = 120;
+//            if (inclination < start){
+//                BackSlides.climbTiltPercentage(1);
+//            }
+//            else if (inclination > end){
+//                BackSlides.climbTiltPercentage(0);
+//            }
+//            else{
+//                double amount = end - start;
+//                double current = inclination - start;
+//                BackSlides.climbTiltPercentage(current / amount);
+//            }
+//        }
+//    }
+
     private static void Climbing() {
         // TODO: pula mea candidatule cauta ce e ala enum -stamatescu
         if (Objects.equals(climbProgress, "begin") && (selectedClimbLevel == ClimbLevel.FIRST_LEVEL || selectedClimbLevel == ClimbLevel.SECOND_LEVEL)) {
+            climbProgress = "busy";
+//            Climb.extendInitRaised();
             ClimbFirstPhase();
-        } else if (Objects.equals(climbProgress, "adjustFirst")) {
+        }
+        else if (Objects.equals(climbProgress, "adjustFirst")) {
+            climbProgress = "busy";
             climbFirstLevel();
-        } else if (Objects.equals(climbProgress, "reachedFirst")) {
+        }
+        else if (Objects.equals(climbProgress, "reachedFirst")) {
+            climbProgress = "busy";
             climbHangFirstLevel();
-        } else if (Objects.equals(climbProgress, "hungFirst") && selectedClimbLevel == ClimbLevel.SECOND_LEVEL) {
+        }
+        else if (Objects.equals(climbProgress, "hungFirst") && selectedClimbLevel == ClimbLevel.SECOND_LEVEL) { // && selectedClimbLevel == ClimbLevel.SECOND_LEVEL
             climbStartSecondLevelAscent();
-        } else if (Objects.equals(climbProgress, "readyToUnhook")) {
-            UnHookFirstLevel();
-        } else if (Objects.equals(climbProgress, "unHooked")) {
-            ClimbSecondLevel();
+        }
+        else if (Objects.equals(climbProgress, "awaitingConfirmation") && gamepad2.right_bumper){
+            climbSecond();
+        }
+        else if (Objects.equals(climbProgress, "raisedSecond") && selectedClimbLevel == ClimbLevel.SECOND_LEVEL) {
+            hangSecond();
+        }
+        else if (Objects.equals(climbProgress, "releaseConfirmation") && gamepad2.right_bumper) {
+            hangSecure();
         }
     }
 
     private static void ClimbFirstPhase(){
         climbProgress = "busy";
         Climb.anglePrepare();
-        ActionDelayer.time(0, Climb::extendPrepare);
+        ActionDelayer.time(300, Climb::extendPrepare);
         ActionDelayer.condition(Climb :: motorsReachedPrepare, Climb::angleFirstLevel);
         ActionDelayer.condition(() -> Climb.motorsReachedPrepare() && Climb.armsReachedFirstLevel(), () -> climbProgress = "adjustFirst");
     }
@@ -557,38 +692,48 @@ public class ActionManager {
         Climb.pullFirst();
         FrontSlides.retractFullyReleaseAfter();
         Intake.transfer();
-        ActionDelayer.time(500, Climb :: angleRaiseFirstLevel);
-        ActionDelayer.condition(Climb :: motorsPulledFully, Climb :: angleHangFirstLevel);
-        ActionDelayer.condition(() -> Climb.motorsPulledFully() && Climb.armsReachedHangFirstLevel(), () -> climbProgress = "reachedFirst");
+//        ActionDelayer.time(700, BackSlides :: climbTilt);
+//        ActionDelayer.time(700, () -> backSlidesTilt = true);
+        ActionDelayer.time(100, Climb :: angleRaiseFirstLevel);
+//        ActionDelayer.condition(Climb :: motorsPulledFully, Climb :: angleHangFirstLevel);
+        ActionDelayer.condition(() -> Climb.motorsPulledFully(), () -> climbProgress = "reachedFirst");
     }
 
     private static void climbHangFirstLevel(){
         climbProgress = "busy";
-        Climb.extendSlidesHangFirstLevel();
+        Climb.angleHangFirstLevel();
+        ActionDelayer.time(150, Climb :: extendSlidesHangFirstLevel);
         ActionDelayer.condition(Climb :: motorsHungFirstLevel, () -> climbProgress = "hungFirst");
     }
 
     private static void climbStartSecondLevelAscent(){
         climbProgress = "busy";
-        Climb.extendTransfer();
+        Climb.extendSecondLevel();
         ActionDelayer.time(300, Climb :: angleTransfer);
-        ActionDelayer.time(300, Climb :: extendSecondLevel);
-        ActionDelayer.condition(Climb :: motorsReachedSecondLevel, Climb :: angleSecondLevel);
-        ActionDelayer.condition(() -> Climb.motorsReachedSecondLevel(), () -> ActionDelayer.time(600, () -> climbProgress = "readyToUnhook"));
+        ActionDelayer.condition(Climb :: motorsReachedSecondLevel, () -> {
+            Climb.angleSecondLevel();
+            climbProgress = "awaitingConfirmation";
+        });
     }
 
-    private static void PassHook2(){
-//        ActionDelayer.condition(Climb :: motorsReachedPassHook2,() -> ActionDelayer.time(800, Climb :: anglePassHook2, unHookTimeScale));
-//        ActionDelayer.condition(() -> Climb.motorsReachedPassHook2(), () -> ActionDelayer.time(200, () -> climbProgress = "unHooked", unHookTimeScale));
-        ActionDelayer.time(700, Climb :: anglePassHook2, unHookTimeScale);
-        ActionDelayer.time(200, () -> climbProgress = "unHooked", unHookTimeScale);
+    private static void climbSecond(){
+        Climb.pullSecond();
+        FrontSlides.findNewInitPositionSlower();
+        ActionDelayer.time(600, Climb :: angleSecondLevelPull);
+        ActionDelayer.condition(Climb :: motorsReachedHalfwaySecond, Climb :: anglePassFirstBar);
+//            ActionDelayer.condition(Climb :: motorsReachedSecondRetracted, Climb :: angleHangSecondLevel);
+        ActionDelayer.condition(Climb :: motorsPulledFully, () -> climbProgress = "raisedSecond");
     }
 
-    private static void PassHook(){
-        Climb.SlidesPassHook();
-        ActionDelayer.condition(Climb :: motorsReachedPassHook, () -> ActionDelayer.time(200, Climb :: anglePassHook, unHookTimeScale));
-        ActionDelayer.condition(() -> Climb.motorsReachedPassHook() && Climb.armsReachedPassHook(), () -> ActionDelayer.time(600, Climb :: SlidesPassHook2, unHookTimeScale));
-        ActionDelayer.condition(() -> Climb.motorsReachedPassHook() && Climb.armsReachedPassHook(), () -> ActionDelayer.time(1400, ActionManager :: PassHook2, unHookTimeScale));
+    private static void hangSecond(){
+        climbProgress = "busy";
+        Climb.angleHangSecondLevel();
+        climbProgress = "releaseConfirmation";
+    }
+
+    private static void hangSecure(){
+        climbProgress = "busy";
+        Climb.extendInitRaised();
     }
 
     private static void UnHookFirstLevel(){
@@ -598,14 +743,41 @@ public class ActionManager {
         ActionDelayer.condition(() -> Climb.motorsUnHooked(), () -> ActionDelayer.time(900, ActionManager :: PassHook));
     }
 
+    private static void PassHook(){
+        Climb.SlidesPassHook();
+        ActionDelayer.condition(Climb :: motorsReachedPassHook, () -> ActionDelayer.time(200, Climb :: anglePassHook, unHookTimeScale));
+//        ActionDelayer.condition(Climb :: motorsReachedPassHook, () -> ActionDelayer.time(200, BackSlides :: climbTilt, unHookTimeScale));
+//        ActionDelayer.condition(Climb :: motorsReachedPassHook, () -> ActionDelayer.time(200, Claw :: clawPositionPark, unHookTimeScale));
+        ActionDelayer.condition(() -> Climb.motorsReachedPassHook() && Climb.armsReachedPassHook(), () -> ActionDelayer.time(1200, Climb :: SlidesPassHook2, unHookTimeScale));
+        ActionDelayer.condition(() -> Climb.motorsReachedPassHook() && Climb.armsReachedPassHook(), () -> ActionDelayer.time(2000, ActionManager :: PassHook2, unHookTimeScale));
+    }
+
+    private static void PassHook2(){
+//        ActionDelayer.condition(Climb :: motorsReachedPassHook2,() -> ActionDelayer.time(800, Climb :: anglePassHook2, unHookTimeScale));
+//        ActionDelayer.condition(() -> Climb.motorsReachedPassHook2(), () -> ActionDelayer.time(200, () -> climbProgress = "unHooked", unHookTimeScale));
+        ActionDelayer.time(700, Climb :: anglePassHook2, unHookTimeScale);
+//        ActionDelayer.time(700, BackSlides :: initPosition, unHookTimeScale);
+//        ActionDelayer.time(700, Claw :: clawPositionInit, unHookTimeScale);
+        ActionDelayer.time(200, () -> climbProgress = "unHooked", unHookTimeScale);
+    }
+
     private static void ClimbSecondLevel()
     {
         climbProgress = "busy";
         ActionDelayer.time(0, Climb::pullSecond);
         ActionDelayer.time(1000, Climb::angleSecondLevelPull);
         ActionDelayer.condition(Climb :: motorsPulledFully, () -> ActionDelayer.time(200, Climb :: angleHangSecondLevel));
-        ActionDelayer.condition(Climb :: motorsPulledFully, () -> ActionDelayer.time(200, () -> FrontSlides.extendPercentage(0.28)));
+//        ActionDelayer.condition(Climb :: motorsPulledFully, () -> ActionDelayer.time(200, () -> FrontSlides.extendPercentage(0.28)));
         ActionDelayer.condition(Climb :: motorsPulledFully, () -> climbProgress = "done");
+    }
+
+    private static void susjos(){
+        if(gamepad2.dpad_left) {
+            ActionDelayer.time(0, Climb::raise);
+        }
+        else if(gamepad2.dpad_right){
+            ActionDelayer.time(0, Climb::pullFirst);
+        }
     }
 
     private static void Inspection(){

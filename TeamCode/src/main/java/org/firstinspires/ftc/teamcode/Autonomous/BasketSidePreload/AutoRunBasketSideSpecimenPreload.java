@@ -2,20 +2,18 @@ package org.firstinspires.ftc.teamcode.Autonomous.BasketSidePreload;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
-import org.firstinspires.ftc.teamcode.Autonomous.SpecimenSidePreload.AutoRunSpecimenSideFive;
-import org.firstinspires.ftc.teamcode.Autonomous.SpecimenSidePreload.SpecimenSidePreloadTrajectories;
-import org.firstinspires.ftc.teamcode.Mechanisms.BackSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Claw;
 import org.firstinspires.ftc.teamcode.Mechanisms.FrontSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.RoadRunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
+import org.firstinspires.ftc.teamcode.Utils.GameMap;
 
-public class AutoRunBasketSidePreload implements Runnable{
+public class AutoRunBasketSideSpecimenPreload implements Runnable{
     private SampleMecanumDrive drive;
 
-    public AutoRunBasketSidePreload(SampleMecanumDrive Drive){
+    public AutoRunBasketSideSpecimenPreload(SampleMecanumDrive Drive){
         drive = Drive;
     }
 
@@ -33,11 +31,15 @@ public class AutoRunBasketSidePreload implements Runnable{
 
     private static AutoState progress;
 
-    @Override
-    public void run() {
+    public void init(){
         progress = AutoState.START;
         drive.setPoseEstimate(new Pose2d(-16.10, -63.7, Math.toRadians(-90.00)));
         BasketSidePreloadTrajectories.setDrive(drive);
+        GameMap.init(drive);
+    }
+
+    @Override
+    public void run() {
         runAuto();
     }
 
@@ -161,7 +163,7 @@ public class AutoRunBasketSidePreload implements Runnable{
     private void park(){
         ActionDelayer.time(100, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.park()));
         ActionDelayer.time(600, ActionManager :: resetScoring);
-        ActionDelayer.time(2500, Claw:: armsPark);
+        ActionDelayer.time(2500, Claw:: clawPositionPark);
     }
 
 

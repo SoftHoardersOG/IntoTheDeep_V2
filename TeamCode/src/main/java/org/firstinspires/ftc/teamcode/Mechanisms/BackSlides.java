@@ -7,16 +7,31 @@ public class BackSlides {
 
     public static boolean scoringPosition;
 
-    private static int slidesInit = -13;
+    private static int slidesInit = -3;
     private static int slidesInitLower = 35;
-    public static int slidesTransfer = -5;
-    private static int basketLevels[] = {-400, -1000};
-    private static int chamberLevels[] = {-130, -345};
+    public static int slidesTransfer = 0;
+    private static int basketLevels[] = {-425, -1150};
+    private static int chamberLevels[] = {-154, -265};
+    private static int climbTilt = -700;
 
     public static void initPosition(){
-        Hardware.backSlides.setPower(1);
+//        Hardware.backSlides.setPower(1);
 //        lowerSlidesGradual();
         Hardware.backSlides.setTargetPosition(slidesInit);
+        scoringPosition = false;
+    }
+
+    public static void climbTiltPercentage(double p){
+        if (p < 0) p = 0;
+        else if (p > 1) p = 1;
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition((int)(climbTilt * p));
+        scoringPosition = false;
+    }
+
+    public static void climbTilt(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(climbTilt);
         scoringPosition = false;
     }
 

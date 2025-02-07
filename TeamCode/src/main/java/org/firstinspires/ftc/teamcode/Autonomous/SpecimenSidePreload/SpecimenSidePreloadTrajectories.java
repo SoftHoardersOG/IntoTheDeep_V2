@@ -15,6 +15,12 @@ public class SpecimenSidePreloadTrajectories {
         drive = Drive;
     }
 
+    public static TrajectorySequence placePreload(){
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(3, -30, Math.toRadians(-60.00)))
+                .build();
+    }
+
     public static TrajectorySequence goToChamber(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                 .lineToConstantHeading(new Vector2d(3, -31))
@@ -48,28 +54,24 @@ public class SpecimenSidePreloadTrajectories {
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
     }
-    public static TrajectorySequence distanceFromChamber()
-    {
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToConstantHeading(new Vector2d(9.68, -46.17))
-                .build();
-    }
+//    public static TrajectorySequence distanceFromChamber()
+//    {
+//        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+//                .lineToHeading(new Vector2d(9.68, -46.17))
+//                .build();
+//    }
     public static TrajectorySequence goToFirstSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(36.59, -46.00, Math.toRadians(54.00)),
-                        SampleMecanumDrive.getVelocityConstraint(65.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-//                .forward(3,
-//                        SampleMecanumDrive.getVelocityConstraint(20.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-//                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                .lineToLinearHeading(new Pose2d(37, -45, Math.toRadians(43.00)))
                 .build();
+
     }
     public static TrajectorySequence goToSecondSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(38.69, -48.51, Math.toRadians(44.50)),
-                        SampleMecanumDrive.getVelocityConstraint(60.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                .lineToLinearHeading(new Pose2d(42, -48.51, Math.toRadians(42.00)),
+                        SampleMecanumDrive.getVelocityConstraint(45.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .forward(6,
                         SampleMecanumDrive.getVelocityConstraint(9.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
@@ -79,11 +81,11 @@ public class SpecimenSidePreloadTrajectories {
     public static TrajectorySequence goToThirdSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(45.73, -41.32, Math.toRadians(30.00)),
-                        SampleMecanumDrive.getVelocityConstraint(65.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                .lineToLinearHeading(new Pose2d(45.73, -41.32, Math.toRadians(22.00)),
+                        SampleMecanumDrive.getVelocityConstraint(60.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .forward(8,
-                        SampleMecanumDrive.getVelocityConstraint(15.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                .forward(6,
+                        SampleMecanumDrive.getVelocityConstraint(20.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .back(4)
                 .build();
@@ -145,22 +147,22 @@ public class SpecimenSidePreloadTrajectories {
     }
     public static TrajectorySequence scoreFirstSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToConstantHeading(new Vector2d(3.33, -32.00))
+                .lineToLinearHeading(new Pose2d(7.00, -30.00, Math.toRadians(-60.00)))
                 .build();
     }
     public static TrajectorySequence scoreSecondSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(2.3, -31.00, Math.toRadians(-92.00)))
+                .lineToLinearHeading(new Pose2d(8.00, -30.00, Math.toRadians(-60.00)))
                 .build();
     }
     public static TrajectorySequence scoreThirdSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(6.1, -30.00, Math.toRadians(-92.00)))
+                .lineToLinearHeading(new Pose2d(11.00, -30.00, Math.toRadians(-60.00)))
                 .build();
     }
     public static TrajectorySequence scoreFourthSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(8.00, -30.00, Math.toRadians(-92.00)))
+                .lineToLinearHeading(new Pose2d(10.00, -30.00, Math.toRadians(-60.00)))
                 .build();
     }
 }

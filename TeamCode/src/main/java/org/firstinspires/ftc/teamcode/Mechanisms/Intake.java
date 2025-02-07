@@ -10,9 +10,9 @@ public class Intake {
     public static boolean collecting;
     public static boolean spittingGround;
 
-    private static double openerCollect = 0.4;
-    private static double openerCollectWide = 0.4;
-    private static double openerClosed = 0;
+    private static double openerCollect = 0.92;
+    private static double openerCollectWide = 0.92;
+    private static double openerClosed = 0.52;
 
     private static double intakeRightCollect = 1;
     private static double intakeRightSpitout = -1;
@@ -20,19 +20,30 @@ public class Intake {
     private static double intakeLeftCollect = -1;
     private static double intakeLeftSpitout = 1;
 
-    private static double intakeUpDownInit = 0.2;
-    private static double intakeUpDownNeutral = 0.70;
-    private static double intakeUpDownCollect = 0.95;
-    private static double intakeUpDownTransfer = 0.02;
-    private static double intakeUpDownParkSpecimenSide = 0.2;
+    private static double intakeUpDownLimelightScan = 0.45;
+    private static double intakeUpDownInit = 0.56;
+    private static double intakeUpDownNeutral = 0.29;
+    private static double intakeUpDownCollect = 0.16;
+    public static double intakeUpDownTransfer = 0.68;
+    private static double intakeUpDownParkSpecimenSide = 0.56;
 
-    private static double intakeUpDownCollectMaxOffset = -0.01;
+    private static double intakeUpDownCollectMaxOffset = 0.02;
 
     public static void updateCollectPosition(){
         if (inCollectPosition){
             double position = intakeUpDownCollect + FrontSlides.getCurrentPercentage() * intakeUpDownCollectMaxOffset;
             Hardware.intakeUpDown.setPosition(position);
         }
+    }
+
+    public static void clearLimelightView(){
+        inCollectPosition = false;
+        collecting = false;
+        spittingGround = false;
+        Hardware.intakeLeft.setPower(0);
+        Hardware.intakeRight.setPower(0);
+        Hardware.intakeUpDown.setPosition(intakeUpDownLimelightScan);
+        Hardware.opener.setPosition(openerClosed);
     }
 
     public static void init(){

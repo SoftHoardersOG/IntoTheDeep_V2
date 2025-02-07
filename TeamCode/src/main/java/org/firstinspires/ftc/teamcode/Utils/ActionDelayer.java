@@ -6,6 +6,8 @@ import java.util.TimerTask;
 public class ActionDelayer {
     public static double timeScale = 1;
 
+    private static boolean passed = false;
+
     public static void setTimeScale(double _timeScale){
         timeScale = _timeScale;
     }

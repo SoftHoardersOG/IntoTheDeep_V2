@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.RoadRunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
+import org.firstinspires.ftc.teamcode.Utils.GameMap;
 
 public class AutoRunSpecimenSideFour implements Runnable{
     private SampleMecanumDrive drive;
@@ -40,11 +41,15 @@ public class AutoRunSpecimenSideFour implements Runnable{
         drive = Drive;
     }
 
-    @Override
-    public void run() {
+    public void init(){
         progress = AutoState.START;
         drive.setPoseEstimate(new Pose2d(17.00, -64.14, Math.toRadians(-88.00)));
         SpecimenSidePreloadTrajectories.setDrive(drive);
+        GameMap.init(drive);
+    }
+
+    @Override
+    public void run() {
         runAuto();
     }
 
@@ -72,7 +77,7 @@ public class AutoRunSpecimenSideFour implements Runnable{
     }
 
     private void goToFirstSample(){
-        drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.distanceFromChamber());
+//        drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.distanceFromChamber());
         ActionDelayer.time(150, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToFirstSample()));
         ActionDelayer.time(200, Intake:: collect);
         ActionDelayer.time(1700, this :: extendFirstSample);

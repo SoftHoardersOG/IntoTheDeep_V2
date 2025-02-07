@@ -3,36 +3,38 @@ package org.firstinspires.ftc.teamcode.Autonomous.OpModes;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Autonomous.BasketSidePreload.AutoRunBasketSideFive;
-import org.firstinspires.ftc.teamcode.Autonomous.BasketSidePreload.AutoRunBasketSidePreload;
-import org.firstinspires.ftc.teamcode.Mechanisms.FrontSlides;
-import org.firstinspires.ftc.teamcode.RoadRunner.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.Autonomous.SpecimenSidePreload.AutoRunSpecimenSideFive;
+import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.TeleOp.TelemetryManager;
+import org.firstinspires.ftc.teamcode.Utils.ColorSensor;
+import org.firstinspires.ftc.teamcode.Utils.ConditionChecker;
 import org.firstinspires.ftc.teamcode.Utils.Initializations;
 
-@Autonomous(name = "BasketSideSamplePreload")
-public class BasketSamplePreload extends LinearOpMode {
+@Autonomous(name = "SpecimenFiveRed", group = "red", preselectTeleOp = "MainTeleOp")
+public class SpecimenFiveRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        Initializations.initAuto(hardwareMap, telemetry);
+        Initializations.initAuto(hardwareMap, telemetry, ColorSensor.AllianceColors.RED);
+        AutoRunSpecimenSideFive autoCase = new AutoRunSpecimenSideFive(Hardware.drive);
+        autoCase.init();
         while (opModeInInit() && !isStopRequested()) {
 //            FrontSlides.update();
 //            if (FrontSlides.isStuck()) {
 //                FrontSlides.initPosition();
 //            }
             TelemetryManager.manageAuto();
+            ActionManager.updateInit();
         }
+        Initializations.startAuto();
         if(!isStopRequested()){
-            AutoRunBasketSideFive autoCase = new AutoRunBasketSideFive(drive);
             autoCase.run();
             while (!isStopRequested() && opModeIsActive()) {
                 ActionManager.controlAuto();
                 TelemetryManager.manageAuto();
-                drive.update();
+                Hardware.drive.update();
             }
-
         }
+        ConditionChecker.opModeStopped = true;
     }
 }

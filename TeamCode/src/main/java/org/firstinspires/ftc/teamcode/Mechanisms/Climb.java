@@ -1,37 +1,42 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 import org.firstinspires.ftc.teamcode.Utils.Potentiometers;
 
 public class Climb {
 
-    private static double climbInit = 0.5;
+    private static double climbInit = 0.3;
     private static double climbPrepare = 0.66;
-    private static double climbFirstLevel = 0.6;
-    private static double climbRaiseFirstLevel = 0.42;
-    private static double climbHangFirstLevel = 0.27;
-    private static double climbTransfer = 0.37;
-    private static double climbSecondLevel = 0.21;
-    private static double climbSecondLevelPull = 0.45;
-    private static double climbUnHook = 0.36;
-    private static double climbPassHook = 0.2;
-    private static double climbPassHook2 = 0.4;
+    private static double climbFirstLevel = 0.58;
+    private static double climbRaiseFirstLevel = 0.36;
+    private static double climbHangFirstLevel = 0.6;
+    private static double climbTransfer = 0.52;
+    private static double climbSecondLevel = 0.46;
+    private static double climbUnHook = 0.45;
+    private static double climbPassHook = 0.33;
+    private static double climbPassHook2 = 0.45;
+    private static double climbSecondLevelPull = 0.6;
     private static double climbSecondLevelHang = 0.6;
+    private static double climbPassFirstBar = 0.3;
 
     private static double armsError = 0.04;
 
-    private static int climbRightSlidesOffset = 40;
+    private static int climbRightSlidesOffset = 0;
 
     private static int climbSlidesInit = 0;
-    private static int climbSlidesPrepare = 2400; // 985
+    private static int climbSlidesInitRaised = 200;
+    private static int climbSlidesPrepare = 1700; // 985
     private static int climbSlidesPull = -1000;
     private static int climbSlidesHangFirstLevel = 690;
     private static int climbSlidesTransfer = 1090;
-    private static int climbSlidesSecondLevel = 2625;
-    private static int climbSlidesUnHook = 1975;
-    private static int climbSlidesPassHook = 2625;
-    private static int climbSlidesPassHook2 = 2360;
+    private static int climbSlidesSecondLevel = 3250;
+    private static int climbSlidesUnHook = 2200;
+    private static int climbSlidesPassHook = 2900;
+    private static int climbSlidesPassHook2 = 2500;
 
 
     private static double adjustManuallySpeed = 0.15;
@@ -42,6 +47,11 @@ public class Climb {
     }
 
 
+    public static void raise(){
+        enableMotors();
+        Hardware.climbLeftSlides.setTargetPosition(-3800);
+        Hardware.climbRightSlides.setTargetPosition(3800);
+    }
 
 
 
@@ -123,9 +133,18 @@ public class Climb {
         Hardware.climbFrontRight.setPosition(climbSecondLevelHang);
     }
 
+    public static void anglePassFirstBar(){
+        Hardware.climbBackLeft.setPosition(climbPassFirstBar);
+        Hardware.climbBackRight.setPosition(climbPassFirstBar);
+        Hardware.climbFrontLeft.setPosition(climbPassFirstBar);
+        Hardware.climbFrontRight.setPosition(climbPassFirstBar);
+    }
 
 
 
+    public static void extendRightSecondLevel(){
+        Hardware.climbRightSlides.setTargetPosition(climbSlidesSecondLevel + climbRightSlidesOffset);
+    }
 
 
     public static void extendInit(){
@@ -134,8 +153,17 @@ public class Climb {
         Hardware.climbRightSlides.setTargetPosition(climbSlidesInit + climbRightSlidesOffset);
 //        ActionDelayer.condition(Climb::motorsReachedInit, Climb::disableMotors);
     }
+    public static void extendInitRaised(){
+        enableMotors();
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesInitRaised);
+        Hardware.climbRightSlides.setTargetPosition(climbSlidesInitRaised + climbRightSlidesOffset);
+    }
     public static void extendPrepare(){
         enableMotors();
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPrepare);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPrepare + climbRightSlidesOffset);
     }
@@ -143,6 +171,8 @@ public class Climb {
         enableMotors();
         Hardware.climbRightSlides.setPower(1);
         Hardware.climbLeftSlides.setPower(1);
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPull - 100);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPull + climbRightSlidesOffset);
     }
@@ -151,24 +181,32 @@ public class Climb {
 
         Hardware.climbLeftSlides.setPower(1);
         Hardware.climbRightSlides.setPower(1);
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPull - 100);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPull + climbRightSlidesOffset);
     }
     
     public static void SlidesUnHook(){
         enableMotors();
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesUnHook);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesUnHook + climbRightSlidesOffset);
     }
 
     public static void SlidesPassHook(){
         enableMotors();
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(3, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(3, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPassHook);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPassHook + climbRightSlidesOffset);
     }
 
     public static void SlidesPassHook2(){
         enableMotors();
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPassHook2);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPassHook2 + climbRightSlidesOffset);
     }
@@ -176,15 +214,21 @@ public class Climb {
     public static void extendTransfer(){
         enableMotors();
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesTransfer);
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbRightSlides.setTargetPosition(climbSlidesTransfer + climbRightSlidesOffset);
     }
     public static void extendSecondLevel(){
         enableMotors();
-        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesSecondLevel);
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesSecondLevel - 30);
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbRightSlides.setTargetPosition(climbSlidesSecondLevel + climbRightSlidesOffset);
     }
     public static void extendSlidesHangFirstLevel(){
         enableMotors();
+        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesHangFirstLevel);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesHangFirstLevel + climbRightSlidesOffset);
     }
@@ -194,7 +238,7 @@ public class Climb {
         return Potentiometers.inRange(Potentiometers.climbLeftPosition(), position - armsError, position + armsError) && Potentiometers.inRange(Potentiometers.climbRightPosition(), position - armsError, position + armsError);
     }
 
-    private static boolean armsReached(double left, double right){
+    private static boolean  armsReached(double left, double right){
         return Potentiometers.inRange(Potentiometers.climbLeftPosition(), left - armsError, left + armsError) && Potentiometers.inRange(Potentiometers.climbRightPosition(), right - armsError, right + armsError);
     }
 
@@ -208,7 +252,7 @@ public class Climb {
     }
 
     public static boolean armsReachedHangFirstLevel(){
-        return armsReached(climbHangFirstLevel, climbHangFirstLevel + 0.06);
+        return armsReached(climbHangFirstLevel + -0.01, climbHangFirstLevel + 0.04);
     }
 
     public static boolean armsReachedTransfer(){
@@ -233,13 +277,20 @@ public class Climb {
 
 
     private static boolean closeTo(int position, int target){
-        return position >= target - 30 && position <= target + 30;
+        return position >= target - 50 && position <= target + 50;
     }
 
     private static boolean closeTo(int position, int target, int range){
         return position >= target - range && position <= target + range;
     }
 
+    public static boolean motorsReachedSecondRetracted(){
+        return Hardware.climbRightSlides.getCurrentPosition() < (climbSlidesSecondLevel - 3250);
+    }
+
+    public static boolean motorsReachedHalfwaySecond(){
+        return Hardware.climbRightSlides.getCurrentPosition() < (climbSlidesSecondLevel - 2700);
+    }
 
     public static boolean motorsReachedPrepare(){
         return closeTo(Hardware.climbRightSlides.getCurrentPosition(), climbSlidesPrepare + climbRightSlidesOffset) && closeTo(-Hardware.climbLeftSlides.getCurrentPosition(), climbSlidesPrepare);

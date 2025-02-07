@@ -17,7 +17,7 @@ public class SpecimenSidePreloadTrajectories {
 
     public static TrajectorySequence placePreload(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(3, -30, Math.toRadians(-60.00)))
+                .lineToLinearHeading(new Pose2d(3, -28, Math.toRadians(-60.00)))
                 .build();
     }
 
@@ -147,22 +147,22 @@ public class SpecimenSidePreloadTrajectories {
     }
     public static TrajectorySequence scoreFirstSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(7.00, -30.00, Math.toRadians(-60.00)))
+                .lineToLinearHeading(new Pose2d(7.00, -29.00, Math.toRadians(-60.00)))
                 .build();
     }
     public static TrajectorySequence scoreSecondSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(8.00, -30.00, Math.toRadians(-60.00)))
+                .lineToLinearHeading(new Pose2d(8.00, -29.00, Math.toRadians(-60.00)))
                 .build();
     }
     public static TrajectorySequence scoreThirdSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(11.00, -30.00, Math.toRadians(-60.00)))
+                .lineToLinearHeading(new Pose2d(11.00, -29.00, Math.toRadians(-60.00)))
                 .build();
     }
     public static TrajectorySequence scoreFourthSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(10.00, -30.00, Math.toRadians(-60.00)))
+                .lineToLinearHeading(new Pose2d(10.00, -29.00, Math.toRadians(-60.00)))
                 .build();
     }
 }

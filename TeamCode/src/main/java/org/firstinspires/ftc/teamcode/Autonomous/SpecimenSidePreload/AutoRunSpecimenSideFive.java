@@ -31,7 +31,7 @@ public class AutoRunSpecimenSideFive implements Runnable {
     private static double secondSampleExtend = 0.6;
     private static double thirdSampleExtend = 0.58;
     private static double firstSpecimenExtend = 0.25;
-    private static double secondSpecimenExtend = 0.65;
+    private static double secondSpecimenExtend = 0.55;
     private static double deliverSampleExtend = 0.5;
     private static double deliverThirdSampleExtend = 0.3;
     private static double parkExtend = 1;

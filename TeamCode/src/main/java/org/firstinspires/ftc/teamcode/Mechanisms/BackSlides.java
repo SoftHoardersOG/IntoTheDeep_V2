@@ -11,7 +11,7 @@ public class BackSlides {
     private static int slidesInitLower = 35;
     public static int slidesTransfer = 0;
     private static int basketLevels[] = {-425, -1150};
-    private static int chamberLevels[] = {-154, -265};
+    private static int chamberLevels[] = {-154, -275};
     private static int climbTilt = -700;
 
     public static void initPosition(){

@@ -51,11 +51,14 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
 
     private static AutoState progress;
 
+    private static boolean collectedExtra;
+
     public void init(){
         progress = AutoState.START;
         drive.setPoseEstimate(new Pose2d(-40.99, -64.43, Math.toRadians(0.00)));
         BasketSidePreloadTrajectories.setDrive(drive);
         GameMap.init(drive);
+        collectedExtra = false;
     }
 
     @Override
@@ -93,8 +96,7 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
             FifthSample();
         });
         ActionDelayer.condition(() -> progress == AutoState.SCORED_FIFTH, () -> {
-            printSegmentTime("Fifth Sample: ");
-            SixthSample();
+            park();
         });
 //        ActionDelayer.condition(() -> progress == AutoState.SCORED_THIRD, this :: park);
     }
@@ -106,8 +108,8 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
         ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSamplePreload()));
         ActionDelayer.time(1500, () -> FrontSlides.extendPercentage(firstSampleExtend, 1));
         ActionDelayer.time(1500, Intake :: collectWide);
-        ActionDelayer.time(2300, ActionManager :: releaseSample);
-        ActionDelayer.time(2300, () -> progress = AutoState.SCORED_PRELOAD);
+        ActionDelayer.time(2000, ActionManager :: releaseSample);
+        ActionDelayer.time(2000, () -> progress = AutoState.SCORED_PRELOAD);
     }
 
 
@@ -192,8 +194,8 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
         FrontSlides.extendPercentage(thirdSampleExtend, 1);
         ActionDelayer.condition(() -> ColorSensor.collectedYellowSample(), () -> {
             ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.Turn()));
-            ActionDelayer.time(200, () -> ActionManager.transferAuto("high_basket"));
-            ActionDelayer.time(300, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(600, this :: ScoreThirdSample)));
+            ActionDelayer.time(100, () -> ActionManager.transferAuto("high_basket"));
+            ActionDelayer.time(200, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(600, this :: ScoreThirdSample)));
         });
     }
 
@@ -214,6 +216,7 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
     private void goToFourthSample(){
         drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToSubmersible());
         ActionDelayer.condition(() -> !drive.isBusy(), () -> {
+            drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.Strafe(4));
             Sweeper.open();
             ActionDelayer.time(300, Sweeper :: close);
             ActionDelayer.time(500, () -> {
@@ -224,7 +227,7 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
 
     private void FifthSample(){
         Intake.clearLimelightView();
-//        ActionDelayer.time(500, ActionManager :: resetScoring);
+        ActionDelayer.time(500, ActionManager :: resetScoring);
         goToFifthSample();
     }
 
@@ -245,11 +248,7 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
 
     private void goToSixthSample(){
         drive.followTrajectorySequence(BasketSidePreloadTrajectories.goToSubmersible());
-        Sweeper.open();
-        ActionDelayer.time(300, Sweeper :: close);
-        ActionDelayer.time(500, () -> {
-            TryCollectFromSubmersible(AutoState.SCORED_SIXTH);
-        });
+        TryCollectFromSubmersible(AutoState.SCORED_SIXTH);
     }
 
     private double getTargetOffset(LLResultTypes.DetectorResult trackedTarget){
@@ -258,6 +257,8 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
 
     private void TryCollectFromSubmersible(AutoState endState){
         if (ConditionChecker.opModeStopped) return;
+
+        collectedExtra = false;
 
         result = Limelight.getDetectorResults();
         if (result == null){
@@ -268,7 +269,7 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
 
         target = null;
         for (LLResultTypes.DetectorResult i : result){
-            if (i.getClassId() == 2){ // e gen yellow
+            if (Limelight.isYellowSample(i.getClassId()) || Limelight.isAllianceSample(i.getClassId())){ // e gen yellow
                 target = i;
                 break;
             }
@@ -280,8 +281,8 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
             return;
         }
 
-        drive.followTrajectorySequence(BasketSidePreloadTrajectories.Strafe(getTargetOffset(target)));
-        CollectFromSubmersible(endState);
+        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.Strafe(getTargetOffset(target)));
+        ActionDelayer.time(300, () -> CollectFromSubmersible(endState));
     }
 
     private void retryTrajectory() {
@@ -290,21 +291,37 @@ public class AutoRunBasketSideSamplePreload implements Runnable {
 
     private void CollectFromSubmersible(AutoState endState){
         Intake.collect();
-        ActionDelayer.time(200, () -> FrontSlides.extendPercentage(1, 0.4));
-        ActionDelayer.condition(() -> ColorSensor.collectedYellowSample(), () -> scoreFromSubmersible(endState));
+        ActionDelayer.time(200, () -> FrontSlides.extendPercentage(1, 0.5));
+        ActionDelayer.condition(() -> ColorSensor.collectedYellowSample() || ColorSensor.collectedAllianceSpecificSample(), () -> {
+            scoreFromSubmersible(endState);
+            collectedExtra = true;
+        });
+        ActionDelayer.time(2000,
+                () ->{
+                    if (!collectedExtra)
+                        retryCollectionCycle(endState);
+                });
+    }
+
+    private void retryCollectionCycle(AutoState endState){
+        Intake.clearLimelightView();
+        FrontSlides.findNewInitPosition();
+        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.Strafe(-7));
+        ActionDelayer.time(700, () -> TryCollectFromSubmersible(endState));
     }
 
     private void scoreFromSubmersible(AutoState endState){
         ActionManager.transferAuto("high_basket");
-        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketFromSubmersible());
-        ActionDelayer.time(3000, ActionManager :: releaseSample);
-        ActionDelayer.time(3000, () -> progress = endState);
+        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.distanceFromSubmersible());
+        ActionDelayer.time(500, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketFromSubmersible()));
+        ActionDelayer.time(2600, ActionManager :: releaseSample);
+        ActionDelayer.time(2600, () -> progress = endState);
     }
 
     private void park(){
-        ActionDelayer.time(100, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.park()));
+        ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.park()));
         ActionDelayer.time(600, ActionManager :: resetScoring);
-        ActionDelayer.time(2800, Claw :: clawPositionPark);
+        ActionDelayer.time(2000, Claw :: clawPositionPark);
     }
 
 }

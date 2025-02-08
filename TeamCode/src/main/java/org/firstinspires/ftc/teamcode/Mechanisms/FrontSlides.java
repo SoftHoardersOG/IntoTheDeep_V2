@@ -70,6 +70,7 @@ public class FrontSlides {
     }
 
     public static void findNewInitPosition(){
+        Hardware.frontSlides.setPower(1);
         power = 1;
         start();
         Hardware.frontSlides.setTargetPosition(slidesInit - 700);

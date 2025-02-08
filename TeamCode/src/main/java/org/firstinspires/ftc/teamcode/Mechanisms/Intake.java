@@ -12,7 +12,7 @@ public class Intake {
 
     private static double openerCollect = 0.92;
     private static double openerCollectWide = 0.92;
-    private static double openerClosed = 0.52;
+    private static double openerClosed = 0.45;
 
     private static double intakeRightCollect = 1;
     private static double intakeRightSpitout = -1;
@@ -27,7 +27,7 @@ public class Intake {
     public static double intakeUpDownTransfer = 0.68;
     private static double intakeUpDownParkSpecimenSide = 0.56;
 
-    private static double intakeUpDownCollectMaxOffset = 0.02;
+    private static double intakeUpDownCollectMaxOffset = 0.01;
 
     public static void updateCollectPosition(){
         if (inCollectPosition){

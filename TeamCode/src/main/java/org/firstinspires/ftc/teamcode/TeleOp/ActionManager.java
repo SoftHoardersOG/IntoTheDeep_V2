@@ -156,6 +156,8 @@ public class ActionManager {
 
         Hardware.odometry.update();
 
+        SpitWrongSample();
+
         lowBasketAuto();
         highBasketAuto();
         lowChamberAuto();
@@ -671,12 +673,12 @@ public class ActionManager {
         else if (Objects.equals(climbProgress, "awaitingConfirmation") && gamepad2.right_bumper){
             climbSecond();
         }
-        else if (Objects.equals(climbProgress, "raisedSecond") && selectedClimbLevel == ClimbLevel.SECOND_LEVEL) {
+        else if (Objects.equals(climbProgress, "raisedSecond") && selectedClimbLevel == ClimbLevel.SECOND_LEVEL && gamepad2.right_bumper) {
             hangSecond();
         }
-        else if (Objects.equals(climbProgress, "releaseConfirmation") && gamepad2.right_bumper) {
-            hangSecure();
-        }
+//        else if (Objects.equals(climbProgress, "releaseConfirmation") && gamepad2.right_bumper) {
+//            hangSecure();
+//        }
     }
 
     private static void ClimbFirstPhase(){

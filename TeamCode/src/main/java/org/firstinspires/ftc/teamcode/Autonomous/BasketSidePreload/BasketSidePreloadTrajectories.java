@@ -72,12 +72,16 @@ public class BasketSidePreloadTrajectories {
 
     }
 
-    public static TrajectorySequence goToBasketFromSubmersible(){
+    public static TrajectorySequence distanceFromSubmersible(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                 .lineToLinearHeading(new Pose2d(-37, -13.5, Math.toRadians(0.00)))
-                .lineToLinearHeading(new Pose2d(-57.26, -54, Math.toRadians(90.00)))
-//                        SampleMecanumDrive.getVelocityConstraint(60.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-//                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                .build();
+
+    }
+
+    public static TrajectorySequence goToBasketFromSubmersible(){
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(-54.26, -58, Math.toRadians(90.00)))
                 .build();
 
     }
@@ -149,7 +153,7 @@ public class BasketSidePreloadTrajectories {
     public static TrajectorySequence goToThirdSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-47.6, -38.00, Math.toRadians(138.00)))
+                .lineToLinearHeading(new Pose2d(-47.6, -36.00, Math.toRadians(139.00)))
                 .forward(2)
                 .build();
     }

@@ -29,9 +29,16 @@ public class SpecimenSidePreloadTrajectories {
 
     public static TrajectorySequence goToPark(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToSplineHeading(new Pose2d(29.70, -53.48, Math.toRadians(-15.00)))
+                .lineToSplineHeading(new Pose2d(29.70, -45.48, Math.toRadians(-10.00)))
                 .build();
     }
+
+    public static TrajectorySequence goToPark2(){
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToSplineHeading(new Pose2d(29.70, -60.48, Math.toRadians(-10.00)))
+                .build();
+    }
+
 
     public static TrajectorySequence TurnToObservationZoneOne()
     {
@@ -63,14 +70,14 @@ public class SpecimenSidePreloadTrajectories {
     public static TrajectorySequence goToFirstSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(37, -45, Math.toRadians(43.00)))
+                .lineToLinearHeading(new Pose2d(38, -45, Math.toRadians(43.00)))
                 .build();
 
     }
     public static TrajectorySequence goToSecondSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(42, -48.51, Math.toRadians(42.00)),
+                .lineToLinearHeading(new Pose2d(43, -47.51, Math.toRadians(42.00)),
                         SampleMecanumDrive.getVelocityConstraint(45.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .forward(6,
@@ -101,21 +108,21 @@ public class SpecimenSidePreloadTrajectories {
     public static TrajectorySequence goToSecondSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                 .lineToSplineHeading(new Pose2d(22.20, -48.08, Math.toRadians(-34.00)),
-                        SampleMecanumDrive.getVelocityConstraint(65.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                        SampleMecanumDrive.getVelocityConstraint(50.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
     }
     public static TrajectorySequence goToThirdSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                 .lineToSplineHeading(new Pose2d(22.20, -48.08, Math.toRadians(-34.00)),
-                        SampleMecanumDrive.getVelocityConstraint(65.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                        SampleMecanumDrive.getVelocityConstraint(50.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
     }
     public static TrajectorySequence goToFourthSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                 .lineToSplineHeading(new Pose2d(22.20, -48.08, Math.toRadians(-34.00)),
-                        SampleMecanumDrive.getVelocityConstraint(65.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                        SampleMecanumDrive.getVelocityConstraint(50.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
     }
@@ -163,6 +170,11 @@ public class SpecimenSidePreloadTrajectories {
     public static TrajectorySequence scoreFourthSpecimen(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
                 .lineToLinearHeading(new Pose2d(10.00, -29.00, Math.toRadians(-60.00)))
+                .build();
+    }
+    public static TrajectorySequence scoreLastSample(){
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(-55, -63.00, Math.toRadians(0.00)))
                 .build();
     }
 }

@@ -4,8 +4,8 @@ import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 
 public class Sweeper {
-    private static double sweeperOpen = 0.81;
-    private static double sweeperClosed = 0.3;
+    private static double sweeperOpen = 0.85;
+    private static double sweeperClosed = 0.27;
 
 
     public static void init(){

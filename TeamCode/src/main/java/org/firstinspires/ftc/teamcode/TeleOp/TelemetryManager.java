@@ -51,13 +51,13 @@ public class TelemetryManager {
     public static void manageOptimizedTeleOp(){
         addTelemetry("delta", ActionManager.dt);
 
-        Pose2d pos = drive.getPoseEstimate();
-        String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), Math.toDegrees(pos.getHeading()));
-        telemetry.addData("Position", data);
-
-        Pose2d vel = drive.getPoseVelocity();
-        String velocity = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", vel.getX(), vel.getY(), Math.toDegrees(vel.getHeading()));
-        telemetry.addData("Velocity", velocity);
+//        Pose2d pos = drive.getPoseEstimate();
+//        String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(), pos.getY(), Math.toDegrees(pos.getHeading()));
+//        telemetry.addData("Position", data);
+//
+//        Pose2d vel = drive.getPoseVelocity();
+//        String velocity = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", vel.getX(), vel.getY(), Math.toDegrees(vel.getHeading()));
+//        telemetry.addData("Velocity", velocity);
 
 //        telemetry.addData("climb progress", ActionManager.climbProgress);
 
@@ -82,31 +82,31 @@ public class TelemetryManager {
 //          addTelemetry("back slides target", backSlides.getTargetPosition());
 
         List<LLResultTypes.DetectorResult> detectorResults = Limelight.getDetectorResults();
-        if (detectorResults != null){
-            if (detectorResults.size() == 0){
-                telemetry.addData("no detected samples", "");
-            }
-            else{
-                for (LLResultTypes.DetectorResult cr : detectorResults) {
-//                    telemetry.addData(cr.getClassName(), "X: %.2f, Y: %.2f", cr.getTargetXPixels(), cr.getTargetYPixels());
-                    telemetry.addData(cr.getClassName(), cr.getClassId());
-                }
-            }
-        }
-        else {
-            telemetry.addData("no detected samples", "");
-        }
+//        if (detectorResults != null){
+//            if (detectorResults.size() == 0){
+//                telemetry.addData("no detected samples", "");
+//            }
+//            else{
+//                for (LLResultTypes.DetectorResult cr : detectorResults) {
+////                    telemetry.addData(cr.getClassName(), "X: %.2f, Y: %.2f", cr.getTargetXPixels(), cr.getTargetYPixels());
+//                    telemetry.addData(cr.getClassName(), cr.getClassId());
+//                }
+//            }
+//        }
+//        else {
+//            telemetry.addData("no detected samples", "");
+//        }
 //
 //        addTelemetry("back slides position", backSlides.getCurrentPosition());
 //
-            addTelemetry("Pe Anglia?", Movement.peAnglia);
+        addTelemetry("Pe Anglia?", Movement.peAnglia);
 //
 //            addTelemetry("claw adjust", Claw.updateClawAngleVertical(backSlides.getCurrentPosition(), backSlides.getTargetPosition()));
 
-        addTelemetry("arm left current", Potentiometers.armLeftPosition());
-        addTelemetry("arm right current", Potentiometers.armRightPosition());
-        addTelemetry("arm left target", Hardware.armLeft.getPosition());
-        addTelemetry("arm right target", Hardware.armRight.getPosition());
+//        addTelemetry("arm left current", Potentiometers.armLeftPosition());
+//        addTelemetry("arm right current", Potentiometers.armRightPosition());
+//        addTelemetry("arm left target", Hardware.armLeft.getPosition());
+//        addTelemetry("arm right target", Hardware.armRight.getPosition());
 //
 //        addTelemetry("arms vertical current", Claw.armsCurrentVerticalPosition);
 //        addTelemetry("arms horizontal current", Claw.armsCurrentHorizontalPosition);
@@ -125,8 +125,8 @@ public class TelemetryManager {
 //        addTelemetry("glisiera stanga",Hardware.climbLeftSlides.getCurrentPosition());
 //        addTelemetry("glisiera dreapta",Hardware.climbRightSlides.getCurrentPosition());
 
-//          addTelemetry("front slides position", frontSlides.getCurrentPosition());
-//          addTelemetry("front slides target", frontSlides.getTargetPosition());
+          addTelemetry("front slides position", frontSlides.getCurrentPosition());
+          addTelemetry("front slides target", frontSlides.getTargetPosition());
 //
 //          addTelemetry("front slides transfer", FrontSlides.slidesTransfer);
 //
@@ -179,8 +179,6 @@ public class TelemetryManager {
 //        addTelemetry("climb servos position", Hardware.climbBackRight.getPosition());
 
         addTelemetry("delta", ActionManager.dt);
-
-        Pose2D pos = odometry.getPosition();
 
 //        addTelemetry("basket angle offset degrees", GameMap.clawAngleToBasket());
 //        addTelemetry("IMU angle normalized origin right", GameMap.rotatedOrigin(GameMap.basketImuRotationOffset, GameMap.normalizedAngleDegrees(pos.getHeading(AngleUnit.DEGREES))));

@@ -122,9 +122,9 @@ public class ActionManager {
             Intake.transfer();
         }
 
-        Hardware.odometry.update();
+//        Hardware.odometry.update();
 
-        susjos();
+//        susjos();
         Sweep();
         Transfer();
         IntakeCheck();
@@ -236,6 +236,12 @@ public class ActionManager {
             }
             else {
                 Intake.spitoutGround();
+                if (transferStyle == TransferStyles.AUTO_TRANSFER_SPECIMEN){
+                    ActionDelayer.condition(() -> !ColorSensor.collectedAllianceSpecificSample(), () -> {
+                        Intake.neutral();
+                        FrontSlides.retractFullyReleaseAfter();
+                    });
+                }
             }
         }
     }

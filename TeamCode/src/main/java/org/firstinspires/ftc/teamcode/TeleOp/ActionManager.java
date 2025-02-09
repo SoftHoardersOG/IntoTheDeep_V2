@@ -452,7 +452,7 @@ public class ActionManager {
     public static void resetScoring(){
         Claw.closeClaw();
         Claw.clawPositionInit();
-        ActionDelayer.time(250, BackSlides::initPosition);
+        ActionDelayer.time(300, BackSlides::initPosition);
         scored = false;
     }
 

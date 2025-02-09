@@ -12,8 +12,7 @@ public class ActionDelayer {
         timeScale = _timeScale;
     }
 
-    public static void time(int msDelay, Lambda lambda){
-        msDelay = msDelay;
+    public static void time(int msDelay, Lambda lambda) {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {

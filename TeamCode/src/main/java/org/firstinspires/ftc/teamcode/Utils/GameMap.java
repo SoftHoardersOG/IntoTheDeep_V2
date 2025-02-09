@@ -95,8 +95,6 @@ public class GameMap {
 //    }
 
     public static double clawAngleToChamber(){
-//        Pose2D pos = odometry.getPosition();
-//        return rotatedOrigin(chamberImuRotationOffset, normalizedAngleDegrees(pos.getHeading(AngleUnit.DEGREES))) - chamberAngle;
         double heading = drive.getPoseEstimate().getHeading();
         while (chamberAngle - heading > Math.PI){
             chamberAngle -= 2 * Math.PI;

@@ -1,12 +1,9 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
-import org.firstinspires.ftc.teamcode.Utils.ColorSensor;
 
 import java.util.List;
 

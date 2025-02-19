@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Utils;
+package org.firstinspires.ftc.teamcode.Mechanisms;
 
 import android.graphics.Color;
 
@@ -21,7 +21,7 @@ public class ColorSensor {
     private static final float blueHue = 224;
     private static final float redHue = 20;
 
-    private static final float collectedDistanceMax = 20;  // millimeters
+    private static final float collectedDistanceMax = 30;  // millimeters
     private static final float collectedDistanceMin = 0;  // millimeters
 
     private static float[] hsv = new float[3];
@@ -77,6 +77,6 @@ public class ColorSensor {
     }
 
     private static boolean inRange(){
-        return collectedDistanceMin < Hardware.colorSensor.getDistance(DistanceUnit.MM) && Hardware.colorSensor.getDistance(DistanceUnit.MM) < collectedDistanceMax;
+        return Hardware.colorSensor.getDistance(DistanceUnit.MM) < collectedDistanceMax;
     }
 }

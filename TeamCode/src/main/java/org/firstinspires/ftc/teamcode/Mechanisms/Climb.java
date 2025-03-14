@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
@@ -7,29 +8,36 @@ import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 import org.firstinspires.ftc.teamcode.Utils.Potentiometers;
 
+@Config
 public class Climb {
 
+    public static double configAngle;
+    public static int configExtend;
+
     private static double climbInit = 0.3;
+    private static double climbInspection = 0.62;
     private static double climbPrepare = 0.66;
-    private static double climbFirstLevel = 0.58;
+    private static double climbFirstLevel = 0.52;
     private static double climbRaiseFirstLevel = 0.36;
-    private static double climbHangFirstLevel = 0.6;
+    private static double climbHangFirstLevel = 0.56;
     private static double climbTransfer = 0.52;
-    private static double climbSecondLevel = 0.46;
+    private static double climbSecondLevel = 0.43;
     private static double climbUnHook = 0.45;
     private static double climbPassHook = 0.33;
     private static double climbPassHook2 = 0.45;
-    private static double climbSecondLevelPull = 0.6;
+    private static double climbSecondLevelPull = 0.7;
     private static double climbSecondLevelHang = 0.6;
-    private static double climbPassFirstBar = 0.3;
+    private static double climbPassFirstBar = 0.15;
 
-    private static double armsError = 0.04;
+    private static double armsError = 0.07;
 
     private static int climbRightSlidesOffset = 0;
 
     private static int climbSlidesInit = 0;
+    private static int climbSlidesInterview = 1200;
     private static int climbSlidesInitRaised = 200;
     private static int climbSlidesPrepare = 1700; // 985
+    private static int climbSlidesInspection = 1100;
     private static int climbSlidesPull = -1000;
     private static int climbSlidesHangFirstLevel = 690;
     private static int climbSlidesTransfer = 1090;
@@ -42,13 +50,22 @@ public class Climb {
     private static double adjustManuallySpeed = 0.15;
 
     public static void init(){
+        configAngle = climbInit;
+        configExtend = climbSlidesInit;
         angleInit();
         extendInit();
     }
 
+    public static void updateConfig(){
+        Hardware.climbBackLeft.setPosition(configAngle);
+        Hardware.climbBackRight.setPosition(configAngle);
+        Hardware.climbFrontLeft.setPosition(configAngle);
+        Hardware.climbFrontRight.setPosition(configAngle);
+        Hardware.climbLeftSlides.setTargetPosition(-1 * configExtend);
+        Hardware.climbRightSlides.setTargetPosition(configExtend + climbRightSlidesOffset);
+    }
 
     public static void raise(){
-        enableMotors();
         Hardware.climbLeftSlides.setTargetPosition(-3800);
         Hardware.climbRightSlides.setTargetPosition(3800);
     }
@@ -67,6 +84,13 @@ public class Climb {
         Hardware.climbFrontLeft.setPosition(climbPrepare);
         Hardware.climbFrontRight.setPosition(climbPrepare);
     }
+    public static void angleInspection(){
+        Hardware.climbBackLeft.setPosition(climbInspection);
+        Hardware.climbBackRight.setPosition(climbInspection);
+        Hardware.climbFrontLeft.setPosition(climbInspection);
+        Hardware.climbFrontRight.setPosition(climbInspection);
+    }
+
     public static void angleFirstLevel(){
         Hardware.climbBackLeft.setPosition(climbFirstLevel);
         Hardware.climbBackRight.setPosition(climbFirstLevel);
@@ -148,87 +172,59 @@ public class Climb {
 
 
     public static void extendInit(){
-        disableMotors();
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesInit);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesInit + climbRightSlidesOffset);
-//        ActionDelayer.condition(Climb::motorsReachedInit, Climb::disableMotors);
+    }
+    public static void extendInterview(){
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesInterview);
+        Hardware.climbRightSlides.setTargetPosition(climbSlidesInterview + climbRightSlidesOffset);
     }
     public static void extendInitRaised(){
-        enableMotors();
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesInitRaised);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesInitRaised + climbRightSlidesOffset);
     }
     public static void extendPrepare(){
-        enableMotors();
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPrepare);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPrepare + climbRightSlidesOffset);
     }
-    public static void pullFirst(){
+    public static void extendInspection(){
         enableMotors();
-        Hardware.climbRightSlides.setPower(1);
-        Hardware.climbLeftSlides.setPower(1);
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPull - 100);
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesInspection);
+        Hardware.climbRightSlides.setTargetPosition(climbSlidesInspection + climbRightSlidesOffset);
+    }
+    public static void pullFirst(){
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPull);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPull + climbRightSlidesOffset);
     }
     public static void pullSecond(){
-        enableMotors();
-
-        Hardware.climbLeftSlides.setPower(1);
-        Hardware.climbRightSlides.setPower(1);
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPull - 100);
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPull);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPull + climbRightSlidesOffset);
     }
     
     public static void SlidesUnHook(){
-        enableMotors();
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesUnHook);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesUnHook + climbRightSlidesOffset);
     }
 
     public static void SlidesPassHook(){
-        enableMotors();
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(3, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(3, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPassHook);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPassHook + climbRightSlidesOffset);
     }
 
     public static void SlidesPassHook2(){
-        enableMotors();
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesPassHook2);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesPassHook2 + climbRightSlidesOffset);
     }
 
     public static void extendTransfer(){
-        enableMotors();
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesTransfer);
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbRightSlides.setTargetPosition(climbSlidesTransfer + climbRightSlidesOffset);
     }
     public static void extendSecondLevel(){
-        enableMotors();
-        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesSecondLevel - 30);
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
+        Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesSecondLevel);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesSecondLevel + climbRightSlidesOffset);
     }
     public static void extendSlidesHangFirstLevel(){
-        enableMotors();
-        Hardware.climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
-        Hardware.climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         Hardware.climbLeftSlides.setTargetPosition(-1 * climbSlidesHangFirstLevel);
         Hardware.climbRightSlides.setTargetPosition(climbSlidesHangFirstLevel + climbRightSlidesOffset);
     }
@@ -248,7 +244,7 @@ public class Climb {
     }
 
     public static boolean armsReachedFirstLevel(){
-        return armsReached(climbFirstLevel);
+        return armsReached(climbFirstLevel + 0.05);
     }
 
     public static boolean armsReachedHangFirstLevel(){
@@ -289,7 +285,10 @@ public class Climb {
     }
 
     public static boolean motorsReachedHalfwaySecond(){
-        return Hardware.climbRightSlides.getCurrentPosition() < (climbSlidesSecondLevel - 2700);
+        return Hardware.climbRightSlides.getCurrentPosition() < (climbSlidesSecondLevel - 2500);
+    }
+    public static boolean motorsReachedAlmostHalfway(){
+        return Hardware.climbRightSlides.getCurrentPosition() < (climbSlidesSecondLevel - 1500);
     }
 
     public static boolean motorsReachedPrepare(){

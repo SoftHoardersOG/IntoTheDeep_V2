@@ -42,30 +42,28 @@ public class BasketSidePreloadTrajectories {
 
     public static TrajectorySequence goToBasketSamplePreload(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-59.48, -55, Math.toRadians(66.00)))
-//                        SampleMecanumDrive.getVelocityConstraint(60.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-//                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                .lineToLinearHeading(new Pose2d(-55.48, -58, Math.toRadians(68.00)))
                 .build();
 
     }
 
     public static TrajectorySequence goToBasketFirstSample(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-61.39, -54, Math.toRadians(86.00)))
+                .lineToLinearHeading(new Pose2d(-55.39, -58, Math.toRadians(90.00)))
                 .build();
 
     }
 
     public static TrajectorySequence goToBasketSecondSample(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-57.26, -54, Math.toRadians(90.00)))
+                .lineToLinearHeading(new Pose2d(-57.26, -58, Math.toRadians(87.00)))
                 .build();
 
     }
 
     public static TrajectorySequence goToBasketThirdSample(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-63.26, -56.28, Math.toRadians(90.00)))
+                .lineToLinearHeading(new Pose2d(-60.26, -56.00, Math.toRadians(90.00)))
 //                        SampleMecanumDrive.getVelocityConstraint(60.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
 //                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
@@ -74,78 +72,30 @@ public class BasketSidePreloadTrajectories {
 
     public static TrajectorySequence distanceFromSubmersible(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-37, -13.5, Math.toRadians(0.00)))
+                .lineToLinearHeading(new Pose2d(-40, -13.5, Math.toRadians(90.00)))
                 .build();
 
     }
 
     public static TrajectorySequence goToBasketFromSubmersible(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-54.26, -58, Math.toRadians(90.00)))
-                .build();
-
-    }
-
-    public static TrajectorySequence goToBasketSamplePreloadSlower(){
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-58.23, -61, Math.toRadians(40.00)),
-                        SampleMecanumDrive.getVelocityConstraint(30.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .build();
-
-    }
-
-    public static TrajectorySequence goToBasketFaster(){
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-60.23, -59.5, Math.toRadians(60.00)),
-                        SampleMecanumDrive.getVelocityConstraint(45.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .build();
-
-    }
-
-    public static TrajectorySequence distanceFromBasket(){
-        return  drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-51.62, -53.22, Math.toRadians(45.00)),
-                        SampleMecanumDrive.getVelocityConstraint(40.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .build();
-
-    }
-
-    public static TrajectorySequence distanceFromWall(){
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToConstantHeading(new Vector2d(-53, -48),
-                        SampleMecanumDrive.getVelocityConstraint(40.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .build();
-    }
-    public static TrajectorySequence Forward(){
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .forward(8,
-                        SampleMecanumDrive.getVelocityConstraint(40.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
-                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
-                .build();
-    }
-
-    public static TrajectorySequence goToSecondSamplePreload(){
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate()).lineToLinearHeading(new Pose2d(17.64, -54.5, Math.toRadians(-20.00)))
+                .lineToLinearHeading(new Pose2d(-57.50, -54, Math.toRadians(90.00)))
                 .build();
 
     }
 
     public static TrajectorySequence goToFirstSample(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-55.5, -46, Math.toRadians(66.00)),
+                .lineToLinearHeading(new Pose2d(-55.5, -46, Math.toRadians(67.00)),
                         SampleMecanumDrive.getVelocityConstraint(20.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
     }
     public static TrajectorySequence goToSecondSample()
     {
-        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+        return drive.trajectorySequenceBuilder(new Pose2d(-55.39, -55, Math.toRadians(90.00)))
                 .forward(10,
-                        SampleMecanumDrive.getVelocityConstraint(40.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                        SampleMecanumDrive.getVelocityConstraint(13.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
                         SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
                 .build();
 
@@ -153,21 +103,43 @@ public class BasketSidePreloadTrajectories {
     public static TrajectorySequence goToThirdSample()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .lineToLinearHeading(new Pose2d(-47.6, -36.00, Math.toRadians(139.00)))
-                .forward(2)
+                .lineToLinearHeading(new Pose2d(-47.6, -38.50, Math.toRadians(138.00)))
+                .forward(4,
+                        SampleMecanumDrive.getVelocityConstraint(8.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                .build();
+    }
+
+    public static TrajectorySequence goToThirdSampleRetry()
+    {
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(-47.6, -34.50, Math.toRadians(136.50)))
                 .build();
     }
 
     public static TrajectorySequence goToSubmersible(){
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .splineToLinearHeading(new Pose2d(-21.91, -10.12, Math.toRadians(0.00)), Math.toRadians(-0.00))
+                .lineToLinearHeading(new Pose2d(-16.91, -2.12, Math.toRadians(0.00)))
+                .build();
+    }
+
+    public static TrajectorySequence goToSubmersible2(){
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(-16.91, -12.12, Math.toRadians(0.00)))
                 .build();
     }
 
     public static TrajectorySequence park()
     {
         return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                .splineToLinearHeading(new Pose2d(-18, -0.81, Math.toRadians(180.00)), Math.toRadians(0.00))
+                .splineToLinearHeading(new Pose2d(-14, -0.81, Math.toRadians(180.00)), Math.toRadians(0.00))
+                .build();
+    }
+
+    public static TrajectorySequence quickPark()
+    {
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(-35, -40, Math.toRadians(90.00)))
                 .build();
     }
 
@@ -178,15 +150,11 @@ public class BasketSidePreloadTrajectories {
     }
 
     public static TrajectorySequence Strafe(double amount){
-        if (amount < 0){
-            return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                    .strafeLeft(Math.abs(amount))
-                    .build();
-        }
-        else{
-            return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
-                    .strafeRight(amount)
-                    .build();
-        }
+        amount *= -1;
+        return drive.trajectorySequenceBuilder(drive.getPoseEstimate())
+                .lineToLinearHeading(new Pose2d(-19.00, drive.getPoseEstimate().getY() + amount, Math.toRadians(0.00)),
+                        SampleMecanumDrive.getVelocityConstraint(35.00, DriveConstants.MAX_ANG_VEL,DriveConstants.TRACK_WIDTH),
+                        SampleMecanumDrive.getAccelerationConstraint(DriveConstants.MAX_ACCEL))
+                .build();
     }
 }

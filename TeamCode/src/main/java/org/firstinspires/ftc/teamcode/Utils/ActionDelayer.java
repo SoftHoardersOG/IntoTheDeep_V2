@@ -34,4 +34,8 @@ public class ActionDelayer {
     public static void condition(LambdaBool condition, Lambda action){
         new ConditionChecker(condition, action).start();
     }
+
+    public static void repeat(LambdaBool condition, int stepDelay, Lambda action){
+        new ConditionCheckerRepeat(condition, action, stepDelay).start();
+    }
 }

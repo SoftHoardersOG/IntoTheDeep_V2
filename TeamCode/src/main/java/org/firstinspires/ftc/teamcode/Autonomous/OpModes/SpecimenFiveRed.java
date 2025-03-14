@@ -1,21 +1,22 @@
 package org.firstinspires.ftc.teamcode.Autonomous.OpModes;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Autonomous.SpecimenSidePreload.AutoRunSpecimenSideFour;
+import org.firstinspires.ftc.teamcode.Autonomous.SpecimenSidePreload.AutoRunSpecimenFive;
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.TeleOp.TelemetryManager;
-import org.firstinspires.ftc.teamcode.Utils.ColorSensor;
+import org.firstinspires.ftc.teamcode.Hardware.ColorSensor;
 import org.firstinspires.ftc.teamcode.Utils.ConditionChecker;
 import org.firstinspires.ftc.teamcode.Utils.Initializations;
 
-//@Autonomous(name = "SpecimenSideFour")
-public class SpecimenFour extends LinearOpMode {
+@Autonomous(name = "SpecimenFiveRed", group = "red", preselectTeleOp = "MainTeleOp")
+public class SpecimenFiveRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        Initializations.initAuto(hardwareMap, telemetry, ColorSensor.AllianceColors.NOT_SELECTED);
-        AutoRunSpecimenSideFour autoCase = new AutoRunSpecimenSideFour(Hardware.drive);
+        Initializations.initAuto(hardwareMap, telemetry, ColorSensor.AllianceColors.RED);
+        AutoRunSpecimenFive autoCase = new AutoRunSpecimenFive(Hardware.drive);
         autoCase.init();
         while (opModeInInit() && !isStopRequested()) {
 //            FrontSlides.update();

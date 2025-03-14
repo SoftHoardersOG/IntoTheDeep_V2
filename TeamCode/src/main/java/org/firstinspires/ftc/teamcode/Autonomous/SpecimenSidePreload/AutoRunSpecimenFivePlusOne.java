@@ -4,15 +4,14 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 
 import org.firstinspires.ftc.teamcode.Mechanisms.FrontSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
-import org.firstinspires.ftc.teamcode.RoadRunner.drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.RoadRunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
-import org.firstinspires.ftc.teamcode.Utils.ColorSensor;
+import org.firstinspires.ftc.teamcode.Hardware.ColorSensor;
 import org.firstinspires.ftc.teamcode.Utils.GameMap;
 
 
-public class AutoRunSpecimenSideFive implements Runnable {
+public class AutoRunSpecimenFivePlusOne implements Runnable {
     private SampleMecanumDrive drive;
 
     private enum AutoState {
@@ -28,20 +27,22 @@ public class AutoRunSpecimenSideFive implements Runnable {
         SCORED_LAST
     }
 
-    private static double firstSampleExtend = 0.5;
-    private static double secondSampleExtend = 0.6;
-    private static double thirdSampleExtend = 0.58;
-    private static double firstSpecimenExtend = 0.25;
-    private static double secondSpecimenExtend = 0.55;
+    private static double firstSampleExtend = 0.56;
+    private static double secondSampleExtend = 0.85;
+    private static double thirdSampleExtend = 0.95;
+    private static double thirdSampleExtendFar = 1;
+    private static double firstSpecimenExtend = 0.5;
+    private static double secondSpecimenExtend = 0.7;
     private static double deliverSampleExtend = 0.5;
-    private static double deliverThirdSampleExtend = 0.3;
+    private static double deliverThirdSampleExtend = 0.9;
     private static double parkExtend = 1;
+    private static double sampleDeliverFar = 0.7;
 
     private static boolean placingSample = false;
 
     private static AutoState progress;
 
-    public AutoRunSpecimenSideFive(SampleMecanumDrive Drive){
+    public AutoRunSpecimenFivePlusOne(SampleMecanumDrive Drive){
         drive = Drive;
     }
 
@@ -71,28 +72,27 @@ public class AutoRunSpecimenSideFive implements Runnable {
     }
 
     private void placeSpecimen() {
-        ActionManager.highChamberPos();
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.placePreload());
+        ActionManager.highChamberPos();
         ActionDelayer.time(1000, ActionManager :: releaseSample);
         ActionDelayer.time(1000, () -> progress = AutoState.SCORED_PRELOAD);
     }
 
     private void FirstSample(){
-        ActionDelayer.time(50, this :: goToFirstSample);
+        ActionDelayer.time(0, this :: goToFirstSample);
         ActionDelayer.time(800, ActionManager :: resetScoring);
     }
 
     private void goToFirstSample(){
-//        drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.distanceFromChamber());
         ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToFirstSample()));
-        ActionDelayer.time(0, Intake :: collect);
-        ActionDelayer.time(1100, this :: extendFirstSample);
-        ActionDelayer.time(1500, this :: CollectFirstSample);
+        ActionDelayer.time(0, Intake :: collectWide);
+        ActionDelayer.time(1700, this :: extendFirstSample);
+        ActionDelayer.time(2350, this :: CollectFirstSample);
     }
 
     private void CollectFirstSample(){
         ActionDelayer.condition(() -> FrontSlides.reachedPercentage(firstSampleExtend - 0.01) || ColorSensor.collectedAllianceSpecificSample(),
-                () -> ActionDelayer.time(100, () -> DeliverSample(AutoState.DELIVERED_FIRST)));
+                () -> ActionDelayer.time(0, () -> DeliverSample(AutoState.DELIVERED_FIRST)));
     }
     private void SecondSample() {
         ActionDelayer.time(100, this :: goToSecondSample);
@@ -101,8 +101,8 @@ public class AutoRunSpecimenSideFive implements Runnable {
     private void goToSecondSample(){
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToSecondSample());
         ActionDelayer.time(300, Intake :: collectWide);
-        ActionDelayer.time(1100, this :: extendSecondSample);
-        ActionDelayer.time(1600, this :: CollectSecondSample);
+        ActionDelayer.time(700, this :: extendSecondSample);
+        ActionDelayer.time(1000, this :: CollectSecondSample);
     }
     private void CollectSecondSample(){
         ActionDelayer.condition(() -> FrontSlides.reachedPercentage(secondSampleExtend - 0.01) || ColorSensor.collectedAllianceSpecificSample(),
@@ -114,11 +114,11 @@ public class AutoRunSpecimenSideFive implements Runnable {
     }
 
     private void goToThirdSample(){
-        extendThirdSampleCenter();
+//        extendThirdSampleCenter();
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToThirdSample());
         ActionDelayer.time(300, Intake :: collectWide);
-        ActionDelayer.time(800, this :: extendThirdSample);
-        ActionDelayer.time(1400, this :: CollectThirdSample);
+        ActionDelayer.time(1300, this :: extendThirdSample);
+        ActionDelayer.time(1800, this :: CollectThirdSample);
     }
 
     private void CollectThirdSample(){
@@ -129,104 +129,109 @@ public class AutoRunSpecimenSideFive implements Runnable {
     }
 
     private void DeliverSample(AutoState finishState){
-        ///Hardware.opener.setPosition(0);
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.TurnToObservationZoneOne());
-        ActionDelayer.time(500, Intake :: spitoutGround);
-        ActionDelayer.time(600, this :: extendDeliverSample);
-        ActionDelayer.time(700, () -> progress = finishState);
         if (finishState == AutoState.DELIVERED_THIRD){
-            ActionDelayer.time(900, () -> extendFirstSpecimen());
+            ActionDelayer.time(200, this :: extendDeliverFar);
+            ActionDelayer.time(500, Intake :: spitoutGround);
+            ActionDelayer.time(500, this :: extendDeliverSample);
+            ActionDelayer.time(600, () -> progress = finishState);
+            ActionDelayer.time(650, () -> extendFirstSpecimen());
+        }
+        else {
+            ActionDelayer.time(400, this :: extendDeliverFar);
+            ActionDelayer.time(700, Intake :: spitoutGround);
+            ActionDelayer.time(700, this :: extendDeliverSample);
+            ActionDelayer.time(800, () -> progress = finishState);
         }
     }
 
-    private void FirstSpecimen(){ActionDelayer.time(700, this :: goToFirstSpecimen);}
+    private void FirstSpecimen(){ActionDelayer.time(400, this :: goToFirstSpecimen);}
 
     private void goToFirstSpecimen(){
-        drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToFirstSpecimen());
-        ActionDelayer.time(0, Intake :: collect);
+        ActionDelayer.time(0, Intake :: collectWide);
         ActionDelayer.time(200, this :: extendFirstSpecimen);
-        ActionDelayer.time(600, this :: TransferAndScoreFirstSpecimen);
+        ActionDelayer.time(200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToFirstSpecimen()));
+        ActionDelayer.time(800, this :: TransferAndScoreFirstSpecimen);
     }
 
     private void TransferAndScoreFirstSpecimen(){
+        drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToScoreFirstSpecimen());
         ActionManager.transferAuto("high_chamber");
-        ActionDelayer.time(100, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToScoreFirstSpecimen()));
-        ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreFirstSpecimen()));
-        ActionDelayer.time(2000, ActionManager :: releaseSample);
-        ActionDelayer.time(2000, () -> progress = AutoState.SCORED_FIRST);
+        ActionDelayer.time(1000, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreFirstSpecimen()));
+        ActionDelayer.time(1800, ActionManager :: releaseSample);
+        ActionDelayer.time(1800, () -> progress = AutoState.SCORED_FIRST);
     }
 
     private void SecondSpecimen(){ActionDelayer.time(0, this :: goToSecondSpecimen);}
 
     private void goToSecondSpecimen(){
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToSecondSpecimen());
-        ActionDelayer.time(0, Intake :: collect);
-        ActionDelayer.time(0, this :: extendSecondSpecimen);
-        ActionDelayer.time(300, ActionManager :: resetScoring);
-        ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectSecondSpecimen()));
-        ActionDelayer.time(1400, this :: TransferAndScoreSecondSpecimen);
+        ActionDelayer.time(700, ActionManager :: resetScoring);
+        ActionDelayer.time(1000, Intake :: collectWide);
+        ActionDelayer.time(1000, this :: extendSecondSpecimen);
+        ActionDelayer.time(1400, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectSecondSpecimen()));
+        ActionDelayer.time(1900, this :: TransferAndScoreSecondSpecimen);
     }
 
     private void TransferAndScoreSecondSpecimen(){
         ActionManager.transferAuto("high_chamber");
-        ActionDelayer.time(1100, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreSecondSpecimen()));
-        ActionDelayer.time(2000, ActionManager :: releaseSample);
-        ActionDelayer.time(2000, () -> progress = AutoState.SCORED_SECOND);
+        ActionDelayer.time(650, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreSecondSpecimen()));
+        ActionDelayer.time(1600, ActionManager :: releaseSample);
+        ActionDelayer.time(1600, () -> progress = AutoState.SCORED_SECOND);
     }
 
     private void ThirdSpecimen(){ActionDelayer.time(0, this :: goToThirdSpecimen);}
 
     private void goToThirdSpecimen(){
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToThirdSpecimen());
-        ActionDelayer.time(200, ActionManager :: resetScoring);
-        ActionDelayer.time(0, Intake :: collect);
-        ActionDelayer.time(0, this :: extendSecondSpecimen);
-        ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectThirdSpecimen()));
-        ActionDelayer.time(1400, this :: TransferAndScoreThirdSpecimen);
+        ActionDelayer.time(600, ActionManager :: resetScoring);
+        ActionDelayer.time(1000, Intake :: collectWide);
+        ActionDelayer.time(1000, this :: extendSecondSpecimen);
+        ActionDelayer.time(1400, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectThirdSpecimen()));
+        ActionDelayer.time(1900, this :: TransferAndScoreThirdSpecimen);
     }
 
     private void TransferAndScoreThirdSpecimen(){
         ActionManager.transferAuto("high_chamber");
-        ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreThirdSpecimen()));
-        ActionDelayer.time(2000, ActionManager :: releaseSample);
-        ActionDelayer.time(2000, () -> progress = AutoState.SCORED_THIRD);
+        ActionDelayer.time(650, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreThirdSpecimen()));
+        ActionDelayer.time(1600, ActionManager :: releaseSample);
+        ActionDelayer.time(1600, () -> progress = AutoState.SCORED_THIRD);
     }
 
     private void FourthSpecimen(){ActionDelayer.time(0, this :: goToFourthSpecimen);}
 
     private void goToFourthSpecimen(){
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToFourthSpecimen());
-        ActionDelayer.time(200, ActionManager :: resetScoring);
-        ActionDelayer.time(0, Intake :: collect);
-        ActionDelayer.time(0, this :: extendSecondSpecimen);
-        ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectFourthSpecimen()));
-        ActionDelayer.time(1400, this :: TransferAndScoreFourthSpecimen);
+        ActionDelayer.time(600, ActionManager :: resetScoring);
+        ActionDelayer.time(1000, Intake :: collectWide);
+        ActionDelayer.time(1000, this :: extendSecondSpecimen);
+        ActionDelayer.time(1400, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectFourthSpecimen()));
+        ActionDelayer.time(1900, this :: TransferAndScoreFourthSpecimen);
     }
 
     private void TransferAndScoreFourthSpecimen(){
         ActionManager.transferAuto("high_chamber");
-        ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreFourthSpecimen()));
-        ActionDelayer.time(2000, Intake :: parkSpecimenSide);
-        ActionDelayer.time(2100, ActionManager :: releaseSample);
-        ActionDelayer.time(2100, () -> progress = AutoState.SCORED_FOURTH);
+        ActionDelayer.time(650, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreFourthSpecimen()));
+        ActionDelayer.time(1700, ActionManager :: releaseSample);
+        ActionDelayer.time(1700, () -> progress = AutoState.SCORED_FOURTH);
     }
 
     private void LastSample(){ActionDelayer.time(0, this :: goToLastSample);}
 
     private void goToLastSample(){
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToFourthSpecimen());
-        ActionDelayer.time(200, ActionManager :: resetScoring);
-        ActionDelayer.time(0, Intake :: collect);
-        ActionDelayer.time(0, this :: extendSecondSpecimen);
+        ActionDelayer.time(600, ActionManager :: resetScoring);
+        ActionDelayer.time(1000, Intake :: collectWide);
+        ActionDelayer.time(1000, this :: extendSecondSpecimen);
         ActionDelayer.time(1200, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.collectFourthSpecimen()));
-        ActionDelayer.time(1400, this :: TransferAndScoreLastSample);
+        ActionDelayer.time(1700, this :: TransferAndScoreLastSample);
     }
 
     private void TransferAndScoreLastSample(){
         ActionManager.transferAuto("high_basket");
-        ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreLastSample()));
-        ActionDelayer.time(2700, ActionManager :: releaseSample);
-        ActionDelayer.time(2700, () -> progress = AutoState.SCORED_LAST);
+        ActionDelayer.time(300, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.scoreLastSample()));
+        ActionDelayer.time(2500, ActionManager :: releaseSample);
+        ActionDelayer.time(2500, () -> progress = AutoState.SCORED_LAST);
     }
     private void goToPark(){
         drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToPark());
@@ -235,21 +240,23 @@ public class AutoRunSpecimenSideFive implements Runnable {
     private void park(){
         goToPark();
         Intake.parkSpecimenSide();
-        ActionDelayer.time(800, this :: extendPark);
+        ActionDelayer.time(200, this :: extendPark);
         ActionDelayer.time(700, ActionManager :: resetScoring);
-//        ActionDelayer.time(1100, () -> drive.followTrajectorySequenceAsync(SpecimenSidePreloadTrajectories.goToPark2()));
     }
 
-    private void extendFirstSample(){FrontSlides.extendPercentage(firstSampleExtend, 0.3);}
+    private void extendFirstSample(){FrontSlides.extendPercentage(firstSampleExtend, 0.6);}
 
-    private void extendSecondSample(){FrontSlides.extendPercentage(secondSampleExtend, 1);}
-    private void extendThirdSample() {FrontSlides.extendPercentage(thirdSampleExtend, 1);}
+    private void extendSecondSample(){FrontSlides.extendPercentage(secondSampleExtend, 0.3);}
+    private void extendThirdSample() {FrontSlides.extendPercentage(thirdSampleExtend, 0.5);}
+    private void extendThirdSampleFar() {FrontSlides.extendPercentage(thirdSampleExtendFar, 1);}
     private void extendThirdSampleCenter() {FrontSlides.extendPercentage(thirdSampleExtend - 0.09, 1);}
     private void extendFirstSpecimen() {FrontSlides.extendPercentage(firstSpecimenExtend, 0.6);}
     private void extendSecondSpecimen() {FrontSlides.extendPercentage(secondSpecimenExtend, 1);}
     private void extendDeliverThirdSample() {FrontSlides.extendPercentage(deliverThirdSampleExtend, 1);}
-    private void extendDeliverSample() {FrontSlides.extendPercentage(deliverSampleExtend, 0.7);}
+    private void extendDeliverSample() {FrontSlides.extendPercentage(deliverSampleExtend, 1);}
     private void extendPark() {FrontSlides.extendPercentage(parkExtend, 1);}
+
+    private void extendDeliverFar() {FrontSlides.extendPercentage(sampleDeliverFar, 1);}
 
 
 }

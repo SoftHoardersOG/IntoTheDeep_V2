@@ -2,45 +2,49 @@ package org.firstinspires.ftc.teamcode.Autonomous.BasketSidePreload;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
+import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Mechanisms.Claw;
 import org.firstinspires.ftc.teamcode.Mechanisms.FrontSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.RoadRunner.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
-import org.firstinspires.ftc.teamcode.Utils.ColorSensor;
+import org.firstinspires.ftc.teamcode.Hardware.ColorSensor;
 import org.firstinspires.ftc.teamcode.Utils.GameMap;
 
-public class AutoRunBasketSideFiveSamples implements Runnable{
+
+public class AutoRunBasketFour implements Runnable {
     private SampleMecanumDrive drive;
 
-    public AutoRunBasketSideFiveSamples(SampleMecanumDrive Drive){
+    public AutoRunBasketFour(SampleMecanumDrive Drive) {
         drive = Drive;
     }
 
     private enum AutoState {
         START,
         SCORED_PRELOAD,
-        SCORED_SECOND_PRELOAD,
         SCORED_FIRST,
         SCORED_SECOND,
-        SCORED_THIRD,
-        SCORED_FOURTH
-
+        SCORED_THIRD
     }
 
-    private static double secondPreloadExtend = 0.86;
-    private static double firstSampleExtend = 0.69;
-    private static double secondSampleExtend = 0.74;
-    private static double thirdSampleExtend = 0.32;
+    private static double firstSampleExtend = 0.55;
+    private static double secondSampleExtend = 0.45;
+    private static double thirdSamplePrepareExtend = 0.3;
+    private static double thirdSampleExtend = 0.7;
+
+    private static long lastTime;
 
     private static AutoState progress;
 
-    public void init(){
+    private static boolean collectedExtra;
+
+    public void init() {
         progress = AutoState.START;
         drive.setPoseEstimate(new Pose2d(-40.99, -64.43, Math.toRadians(0.00)));
         BasketSidePreloadTrajectories.setDrive(drive);
         GameMap.init(drive);
+        collectedExtra = false;
     }
 
     @Override
@@ -48,73 +52,71 @@ public class AutoRunBasketSideFiveSamples implements Runnable{
         runAuto();
     }
 
-    private void runAuto(){
+    private void printSegmentTime(String text) {
+        Hardware.telemetry.log().add(text + Double.toString(1.0 * (System.currentTimeMillis() - lastTime) / 1000));
+        lastTime = System.currentTimeMillis();
+    }
+
+    private void runAuto() {
+        lastTime = System.currentTimeMillis();
+        FrontSlides.release();
         placePreload();
-        ActionDelayer.condition(() -> progress == AutoState.SCORED_PRELOAD, this :: SecondPreload);
-        ActionDelayer.condition(() -> progress == AutoState.SCORED_SECOND_PRELOAD, this :: FirstSample);
-        ActionDelayer.condition(() -> progress == AutoState.SCORED_FIRST, this :: SecondSample);
-        ActionDelayer.condition(() -> progress == AutoState.SCORED_SECOND, this :: ThirdSample);
-        ActionDelayer.condition(() -> progress == AutoState.SCORED_THIRD, this :: park);
-    }
-
-
-
-    private void placePreload(){
-        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.distanceFromWall());
-        ActionDelayer.time(1100, ActionManager:: highBasketPos);
-        ActionDelayer.time(1400, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSamplePreloadSlower()));
-        ActionDelayer.time(2600, ActionManager :: releaseSample);
-        ActionDelayer.time(2600, () -> progress = AutoState.SCORED_PRELOAD);
-    }
-
-    private void SecondPreload(){
-        ActionDelayer.time(0, this :: goToSecondPreload);
-        ActionDelayer.time(400, ActionManager :: resetScoring);
-    }
-
-    private void goToSecondPreload(){
-        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToSecondSamplePreload());
-        ActionDelayer.time(2500, this::CollectSecondPreload);
-    }
-
-    private void CollectSecondPreload(){
-        FrontSlides.extendPercentage(secondPreloadExtend, 0.25);
-        Intake.collectWide();
-        ActionDelayer.condition(() -> FrontSlides.reachedPercentage(secondPreloadExtend - 0.10) || ColorSensor.collectedYellowSample(), () -> {
-            ActionDelayer.time(100, () -> ActionManager.transferAuto("high_basket"));
-            ActionDelayer.time(700, this :: ScoreSecondPreload);
+        ActionDelayer.condition(() -> progress == AutoState.SCORED_PRELOAD, () -> {
+            printSegmentTime("Preload Sample: ");
+            FirstSample();
+        });
+        ActionDelayer.condition(() -> progress == AutoState.SCORED_FIRST, () -> {
+            printSegmentTime("First Sample: ");
+            SecondSample();
+        });
+        ActionDelayer.condition(() -> progress == AutoState.SCORED_SECOND, () -> {
+            printSegmentTime("Second Sample: ");
+            ThirdSample();
+        });
+        ActionDelayer.condition(() -> progress == AutoState.SCORED_THIRD, () -> {
+            printSegmentTime("Third Sample: ");
+            park();
         });
     }
 
-    private void ScoreSecondPreload(){
+
+    private void placePreload(){
+        ActionManager.highBasketPos();
         drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSamplePreload());
-        ActionDelayer.time(3600, ActionManager :: releaseSample);
-        ActionDelayer.time(3600, () -> progress = AutoState.SCORED_SECOND_PRELOAD);
+        ActionDelayer.time(1500, () -> FrontSlides.extendPercentage(firstSampleExtend, 1));
+        ActionDelayer.time(1500, Intake :: collectWide);
+        ActionDelayer.time(1700, ActionManager :: releaseSample);
+        ActionDelayer.time(2200, () -> progress = AutoState.SCORED_PRELOAD);
     }
+
+
 
     private void FirstSample(){
         ActionDelayer.time(0, this :: goToFirstSample);
-        ActionDelayer.time(800, ActionManager :: resetScoring);
     }
 
     private void goToFirstSample(){
-        ActionDelayer.time(500, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToFirstSample()));
-        ActionDelayer.time(1300, this :: CollectFirstSample);
+        ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToFirstSample()));
+        ActionDelayer.time(0, this :: CollectFirstSample);
+        ActionDelayer.time(100, Claw :: closeClaw);
+        ActionDelayer.time(650, ActionManager :: resetScoring);
     }
 
     private void CollectFirstSample(){
-        FrontSlides.extendPercentage(firstSampleExtend, 0.35);
         Intake.collectWide();
-        ActionDelayer.condition(() -> FrontSlides.reachedPercentage(firstSampleExtend - 0.01) || ColorSensor.collectedYellowSample(), () -> {
-            ActionDelayer.time(100, () -> ActionManager.transferAuto("high_basket"));
-            ActionDelayer.time(200, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(500, this :: ScoreFirstSample)));
+        ActionDelayer.condition(() -> ColorSensor.collectedYellowSample(), () -> {
+            ActionDelayer.time(900, () -> ActionManager.transferAuto("high_basket"));
+            ActionDelayer.time(1000, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(1000, this :: ScoreFirstSample)));
         });
     }
 
     private void ScoreFirstSample(){
-        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSamplePreload());
-        ActionDelayer.time(800, ActionManager :: releaseSample);
-        ActionDelayer.time(800, () -> progress = AutoState.SCORED_FIRST);
+        FrontSlides.release();
+        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketFirstSample());
+        ActionDelayer.time(800, () -> FrontSlides.extendPercentage(secondSampleExtend, 1));
+        ActionDelayer.time(800, Intake :: collectWide);
+        ActionDelayer.time(1400, ActionManager :: releaseSample);
+        ActionDelayer.time(1500, () -> progress = AutoState.SCORED_FIRST);
     }
 
 
@@ -125,30 +127,30 @@ public class AutoRunBasketSideFiveSamples implements Runnable{
     private void SecondSample()
     {
         ActionDelayer.time(0, this :: goToSecondSample);
-        ActionDelayer.time(400, ActionManager :: resetScoring);
+        ActionDelayer.time(100, Claw :: closeClaw);
+        ActionDelayer.time(600, ActionManager :: resetScoring);
     }
 
     private void goToSecondSample()
     {
         drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToSecondSample());
-        ActionDelayer.time(900, () -> FrontSlides.extendPercentage(secondSampleExtend, 0.37));
-        ActionDelayer.time(900, Intake :: collectWide);
-        ActionDelayer.time(1000, this :: CollectSecondSample);
+        ActionDelayer.time(0, this :: CollectSecondSample);
     }
 
     private void CollectSecondSample() {
-        FrontSlides.extendPercentage(secondSampleExtend, 0.37);
         Intake.collectWide();
-        ActionDelayer.condition(() -> FrontSlides.reachedPercentage(secondSampleExtend - 0.07) || ColorSensor.collectedYellowSample(), () -> {
-            ActionDelayer.time(100, () -> ActionManager.transferAuto("high_basket"));
-            ActionDelayer.time(200, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(800, this :: ScoreSecondSample)));
+        ActionDelayer.condition(() -> ColorSensor.collectedYellowSample(), () -> {
+            ActionDelayer.time(700, () -> ActionManager.transferAuto("high_basket"));
+            ActionDelayer.time(800, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(1800, this :: ScoreSecondSample)));
         });
     }
 
     private void ScoreSecondSample(){
-        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSamplePreload());
-        ActionDelayer.time(900, ActionManager :: releaseSample);
-        ActionDelayer.time(900, () -> progress = AutoState.SCORED_SECOND);
+        FrontSlides.release();
+        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSecondSample());
+        ActionDelayer.time(400, () -> FrontSlides.extendPercentage(thirdSamplePrepareExtend, 1));
+        ActionDelayer.time(1700, ActionManager :: releaseSample);
+        ActionDelayer.time(1800, () -> progress = AutoState.SCORED_SECOND);
     }
 
 
@@ -156,40 +158,38 @@ public class AutoRunBasketSideFiveSamples implements Runnable{
 
 
     private void ThirdSample() {
-        ActionDelayer.time(100, this :: goToThirdSample);
-        ActionDelayer.time(400, ActionManager :: resetScoring);
+        ActionDelayer.time(0, this :: goToThirdSample);
+        ActionDelayer.time(100, Claw :: closeClaw);
+        ActionDelayer.time(600, ActionManager :: resetScoring);
     }
 
     private void goToThirdSample() {
         drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToThirdSample());
-        ActionDelayer.time(1000, () -> FrontSlides.extendPercentage(thirdSampleExtend, 0.4));
-        ActionDelayer.time(1000, Intake :: collectWide);
-        ActionDelayer.time(2000, this :: CollectThirdSample);
+        ActionDelayer.time(700, Intake :: collectWide);
+        ActionDelayer.time(1400, () -> FrontSlides.extendPercentage(thirdSamplePrepareExtend, 1));
+        ActionDelayer.time(1900, this :: CollectThirdSample);
     }
 
     private void CollectThirdSample() {
-        FrontSlides.extendPercentage(thirdSampleExtend, 0.28);
-        ActionDelayer.condition(() -> FrontSlides.reachedPercentage(thirdSampleExtend - 0.02) || ColorSensor.collectedYellowSample(), () -> {
-            ActionDelayer.time(300, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.Turn()));
-            ActionDelayer.time(700, () -> ActionManager.transferAuto("high_basket"));
-            ActionDelayer.time(800, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(50, this :: ScoreThirdSample)));
+        FrontSlides.extendPercentage(thirdSampleExtend, 0.3);
+        ActionDelayer.condition(() -> ColorSensor.collectedYellowSample(), () -> {
+            ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.Turn()));
+            ActionDelayer.time(100, () -> ActionManager.transferAuto("high_basket"));
+            ActionDelayer.time(200, () -> ActionDelayer.condition(() -> !ActionManager.transferring, () -> ActionDelayer.time(1500, this :: ScoreThirdSample)));
         });
     }
 
     private void ScoreThirdSample(){
-        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketSamplePreload());
-        ActionDelayer.time(1600, ActionManager :: releaseSample);
-        ActionDelayer.time(1600, () -> progress = AutoState.SCORED_THIRD);
+        FrontSlides.release();
+        drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.goToBasketThirdSample());
+        ActionDelayer.time(1300, ActionManager :: releaseSample);
+        ActionDelayer.time(1400, () -> progress = AutoState.SCORED_THIRD);
     }
 
-
-
-
-
     private void park(){
-        ActionDelayer.time(100, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.park()));
+        ActionDelayer.time(0, () -> drive.followTrajectorySequenceAsync(BasketSidePreloadTrajectories.park()));
         ActionDelayer.time(600, ActionManager :: resetScoring);
-        ActionDelayer.time(2800, Claw:: clawPositionPark);
+        ActionDelayer.time(3000, Claw :: clawPositionPark);
     }
 
 }

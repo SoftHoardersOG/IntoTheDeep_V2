@@ -1,16 +1,19 @@
 package org.firstinspires.ftc.teamcode.Utils;
 
-public class ConditionChecker extends Thread{
-
+public class ConditionCheckerRepeat extends Thread{
     private LambdaBool _lambdaC;
     private Lambda _lambdaA;
+    private int stepTime;
+    private int steps;
 
     public static int timeToEnd = 30000;
     public static boolean opModeStopped = false;
 
-    public ConditionChecker(LambdaBool lambdaCondition, Lambda lambdaAction){
+    public ConditionCheckerRepeat(LambdaBool lambdaCondition, Lambda lambdaAction, int _stepTime){
         _lambdaC = lambdaCondition;
         _lambdaA = lambdaAction;
+        stepTime = _stepTime;
+        steps = 0;
     }
 
     @Override
@@ -20,6 +23,10 @@ public class ConditionChecker extends Thread{
             if (System.currentTimeMillis()-time > timeToEnd || opModeStopped){
                 return;
             }
+            if ((System.currentTimeMillis()-time) / stepTime > steps){
+                steps++;
+                _lambdaA.run();
+            }
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -27,6 +34,5 @@ public class ConditionChecker extends Thread{
             }
         }
         if (opModeStopped) return;
-        _lambdaA.run();
     }
 }

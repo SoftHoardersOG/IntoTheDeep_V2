@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
@@ -27,6 +28,11 @@ public class HardwareUtils {
 
     public static Servo getServo(String name) {
         return hardwareMap.get(Servo.class, name);
+    }
+
+
+    public static ServoImplEx getServoEx(String name) {
+        return hardwareMap.get(ServoImplEx.class, name);
     }
 
     public static CRServo getCRServo ( String name) {return hardwareMap.get(CRServo.class, name);}

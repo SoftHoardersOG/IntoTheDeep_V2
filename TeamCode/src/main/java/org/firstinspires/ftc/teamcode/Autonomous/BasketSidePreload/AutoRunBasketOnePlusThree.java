@@ -10,10 +10,10 @@ import org.firstinspires.ftc.teamcode.TeleOp.ActionManager;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 import org.firstinspires.ftc.teamcode.Utils.GameMap;
 
-public class AutoRunBasketSideSpecimenPreload implements Runnable{
+public class AutoRunBasketOnePlusThree implements Runnable{
     private SampleMecanumDrive drive;
 
-    public AutoRunBasketSideSpecimenPreload(SampleMecanumDrive Drive){
+    public AutoRunBasketOnePlusThree(SampleMecanumDrive Drive){
         drive = Drive;
     }
 

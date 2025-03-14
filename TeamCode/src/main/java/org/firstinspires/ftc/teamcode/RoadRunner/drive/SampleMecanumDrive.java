@@ -54,14 +54,14 @@ import static org.firstinspires.ftc.teamcode.RoadRunner.drive.DriveConstants.kV;
  */
 @Config
 public class SampleMecanumDrive extends MecanumDrive {
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(5, 0, 0);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(5, 0, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(7.5, 0, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(9, 0, 0);
 
     public static double LATERAL_MULTIPLIER = 1;
 
     public static double VX_WEIGHT = 2;
     public static double VY_WEIGHT = 2;
-    public static double OMEGA_WEIGHT = 1;
+    public static double OMEGA_WEIGHT = 0.8;
 
     private TrajectorySequenceRunner trajectorySequenceRunner;
 
@@ -257,6 +257,17 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         setDrivePower(vel);
+    }
+
+    public double getHeadingNormalized(){
+        double heading = getPoseEstimate().getHeading();
+        while (heading > 2 * Math.PI) {
+            heading -= 2 * Math.PI;
+        }
+        while (heading < -2 * Math.PI) {
+            heading += 2 * Math.PI;
+        }
+        return heading;
     }
 
     @NonNull

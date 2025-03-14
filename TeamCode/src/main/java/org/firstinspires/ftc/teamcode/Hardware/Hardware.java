@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.Hardware.HardwareUtils.getColorSens
 import static org.firstinspires.ftc.teamcode.Hardware.HardwareUtils.getDcEx;
 import static org.firstinspires.ftc.teamcode.Hardware.HardwareUtils.getDigitalChannel;
 import static org.firstinspires.ftc.teamcode.Hardware.HardwareUtils.getServo;
+import static org.firstinspires.ftc.teamcode.Hardware.HardwareUtils.getServoEx;
 
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -19,6 +20,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -145,6 +147,17 @@ public class Hardware {
         sensor = getDigitalChannel("sensor");
         sensor.setMode(DigitalChannel.Mode.INPUT);
 
+//        intakeUpDown.setPwmEnable();
+//        opener.setPwmEnable();
+//        armLeft.setPwmEnable();
+//        armRight.setPwmEnable();
+//        claw.setPwmEnable();
+//        sweeper.setPwmEnable();
+//        climbBackLeft.setPwmEnable();
+//        climbBackRight.setPwmEnable();
+//        climbFrontLeft.setPwmEnable();
+//        climbFrontRight.setPwmEnable();
+
         colorSensor = getColorSensor("colorSensor");
 
     }
@@ -246,7 +259,7 @@ public class Hardware {
         climbLeftSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
         climbRightSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 0, 0, 0));
 
-//        backSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(15, 0, 0,0));
+        backSlides.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(20, 0, 0,0));
 //        backSlides.setTargetPositionTolerance(80);
 
 
@@ -265,8 +278,6 @@ public class Hardware {
     public static void startAuto(){
         backSlides.setPower(1);
         frontSlides.setPower(1);
-        climbLeftSlides.setPower(1);
-        climbRightSlides.setPower(1);
     }
 
     private static void initPositions(){

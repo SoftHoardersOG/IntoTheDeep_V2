@@ -1,12 +1,19 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 import org.firstinspires.ftc.teamcode.Utils.GameMap;
 import org.firstinspires.ftc.teamcode.Utils.Potentiometers;
 import org.opencv.core.Mat;
 
+@Config
 public class Claw {
+
+    public static double configVertical;
+    public static double configHorizontal;
+    public static double configClaw;
 
     public static boolean reachedVerticalBasketAdjust = false;
     public static boolean fixedPositionActive = false;
@@ -14,38 +21,44 @@ public class Claw {
     public static boolean chamber = false;
     public static boolean preciseAdjusting = false;
 
-    public static double armsCurrentVerticalPosition;
-    public static double armsTargetVerticalPosition;
+    private static double armsCurrentVerticalPosition;
+    private static double armsTargetVerticalPosition;
 
-    public static double armsCurrentHorizontalPosition;
-    public static double armsTargetHorizontalPosition;
+    private static double armsCurrentHorizontalPosition;
+    private static double armsTargetHorizontalPosition;
 
     private static int rotationDirection;
     
     private static double armsNextVerticalPosition = 0.00;
     
-    private static double rotateClawMaxLeft = -0.25;
-    private static double rotateClawMaxRight = 0.25;
-    private static double armsHighBasketMaxAdjust = 0.13;
+    private static double rotateClawMaxLeft = -0.16;
+    private static double rotateClawMaxRight = 0.16;
+    private static double armsHighBasketMaxAdjust = 0.17;
     
     private static double rotationSafeMargin = 0.02;
 
     private static double armsMiddleOffset = -0.00;
-    private static double armsMiddleTolerance = 0.05;
+    private static double armsMiddleTolerance = 0.04;
 
-    private static double armsInit = 0.06;
-    private static double armsTransfer = 0.06;
+    private static double armsInit = 0.04;
+    private static double armsTransfer = 0.04;
+    private static double armsClimb = 0.02;
     private static double armsHighBasket = 0.51;
     private static double armsLowBasket = 0.51;
     private static double armsLowChamber = 0.32;
-    private static double armsHighChamber = 0.51;
-    private static double armsPark = 0.62;
+    private static double armsHighChamber = 0.5;
+    private static double armsPark = 0.63;
+    private static double armsUnPark = 0.66;
+    private static double deliverSample1 = 0.28;
+    private static double deliverSample2 = 0.32;
 
 
-    private static double clawClosedSample = 0.77;
-    private static double clawClosed = 0.77;
-    private static double clawOpen = 0.63;
-    private static double clawOpenScore = 0.47;
+    private static double clawClosedSample = 0.84;
+    private static double clawClosed = 0.82;
+    private static double clawOpen = 0.69;
+    private static double clawOpenScore = 0.67;
+
+    public static boolean horizontalAdjusting = false;
 
     private static void queueNextPositionVertical(double position){
         armsNextVerticalPosition = position;
@@ -58,12 +71,26 @@ public class Claw {
         Hardware.armRight.setPosition(middle + armsMiddleOffset);
     }
 
-    private static boolean reachedVerticalTarget(){
-        return Math.abs(armsCurrentVerticalPosition - armsTargetVerticalPosition) < 0.1;
+    public static void rotateHorizontallyManually(double position){
+        if (position > rotateClawMaxRight) position = rotateClawMaxRight;
+        else if (position < rotateClawMaxLeft) position = rotateClawMaxLeft;
+        horizontalAdjusting = false;
+        Hardware.armLeft.setPosition(armsTargetVerticalPosition + position);
+        Hardware.armRight.setPosition(armsTargetVerticalPosition - position);
+    }
+
+    public static boolean reachedVerticalTarget(){
+        updateData();
+        return Math.abs(armsCurrentVerticalPosition - armsNextVerticalPosition) < 0.1;
+    }
+
+    public static boolean clawOutOfRobot(){
+        updateData();
+        return armsCurrentVerticalPosition > 0.25;
     }
 
     public static boolean reachedMiddle(){
-//        double middle = (Potentiometers.armLeftPosition() + Potentiometers.armRightPosition()) / 2;
+        updateData();
         return Math.abs(armsCurrentHorizontalPosition) < armsMiddleTolerance;
     }
 
@@ -75,15 +102,22 @@ public class Claw {
         armsTargetVerticalPosition = armsHighBasket + processedAmount;
     }
 
-    public static void update(int slidesCurrent, int slidesTarget){
+    public static void updateConfig(){
         updateData();
+        armsTargetVerticalPosition = configVertical;
+        Hardware.armLeft.setPosition(armsTargetVerticalPosition + configHorizontal);
+        Hardware.armRight.setPosition(armsTargetVerticalPosition - configHorizontal);
+        Hardware.claw.setPosition(configClaw);
+    }
+
+    public static void update(int slidesCurrent, int slidesTarget){
         if (fixedPositionActive){
             if (reachedMiddle()){
                 armsTargetVerticalPosition = armsNextVerticalPosition;
                 Hardware.armLeft.setPosition(armsNextVerticalPosition - 2 * armsMiddleOffset);
                 Hardware.armRight.setPosition(armsNextVerticalPosition);
             }
-            if (reachedVerticalTarget() && reachedMiddle()){
+            if ((clawOutOfRobot() && reachedMiddle() && (basket || chamber)) || (reachedVerticalTarget() && reachedMiddle())){
                 armsTargetVerticalPosition = armsNextVerticalPosition;
                 Hardware.armLeft.setPosition(armsNextVerticalPosition - 2 * armsMiddleOffset);
                 Hardware.armRight.setPosition(armsNextVerticalPosition);
@@ -92,14 +126,12 @@ public class Claw {
         }
         else{
             if (basket){
-//                if (!reachedVerticalBasketAdjust) updateClawAngleVertical(slidesCurrent, slidesTarget);
-//                updateData();
-//                if (reachedVerticalBasketAdjust) updateClawAngleHorizontal();
+                armsTargetVerticalPosition = armsHighBasket;
                 updateClawAngleVertical(slidesCurrent, slidesTarget);
-//                updateData();
                 updateClawAngleHorizontal();
             }
             else if (chamber){
+                armsTargetVerticalPosition = armsHighChamber;
                 updateClawAngleHorizontal();
             }
         }
@@ -115,8 +147,6 @@ public class Claw {
         rotationDirection = middle <= armRightPos ? 1 : -1;
         armsCurrentVerticalPosition = middle;
         armsCurrentHorizontalPosition = armRightPos - middle;
-//        rotateClawMaxLeft = -armsTargetVerticalPosition - rotationSafeMargin;
-//        rotateClawMaxRight = 1 - armsTargetVerticalPosition + rotationSafeMargin;
         armsTargetVerticalPosition = targetMiddle;
         armsTargetHorizontalPosition = armRightTargetPos - targetMiddle;
     }
@@ -136,7 +166,7 @@ public class Claw {
             }
             else{
                 double p = -1.0 * over / maxAmount;
-                double height = 1 - p * p * p;
+                double height = 1 - p * p * p * p;
                 if (height < 0.20) height = 0;
                 if (!reachedVerticalBasketAdjust) armsAdjustHeight(height);
                 else armsAdjustHeight(0);
@@ -150,6 +180,7 @@ public class Claw {
     }
 
     public static void updateClawAngleHorizontal(){
+        if (!horizontalAdjusting) return;
         double position = 0;
         if (basket && preciseAdjusting){
             position += GameMap.clawAngleToBasketPrecisePercentage();
@@ -162,64 +193,81 @@ public class Claw {
         }
         if (position > rotateClawMaxRight) position = rotateClawMaxRight;
         else if (position < rotateClawMaxLeft) position = rotateClawMaxLeft;
-//        if (basket &&
-//                Math.abs((armsTargetVerticalPosition + position) - Hardware.armLeft.getPosition()) < 0.00 &&
-//                Math.abs((armsTargetVerticalPosition - position) - Hardware.armRight.getPosition()) < 0.00) return;
         Hardware.armLeft.setPosition(armsTargetVerticalPosition + position);
         Hardware.armRight.setPosition(armsTargetVerticalPosition - position);
     }
 
     public static void clawPositionInit(){
+        basket = false;
+        chamber = false;
+        reachedVerticalBasketAdjust = false;
         rotateClawToCurrentMiddle();
         queueNextPositionVertical(armsInit);
-        reachedVerticalBasketAdjust = false;
-        basket = false;
-        chamber = false;
     }
     public static void clawPositionTransfer(){
+        basket = false;
+        chamber = false;
+        reachedVerticalBasketAdjust = false;
         rotateClawToCurrentMiddle();
         queueNextPositionVertical(armsTransfer);
-        reachedVerticalBasketAdjust = false;
+    }
+    public static void clawPositionClimb(){
         basket = false;
         chamber = false;
+        reachedVerticalBasketAdjust = false;
+        queueNextPositionVertical(armsClimb);
     }
     public static void clawPositionHighChamber(){
-        rotateClawToCurrentMiddle();
-        queueNextPositionVertical(armsHighChamber);
-        reachedVerticalBasketAdjust = false;
         basket = false;
         chamber = true;
+        reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(armsHighChamber);
     }
     public static void clawPositionLowChamber(){
-        rotateClawToCurrentMiddle();
-        queueNextPositionVertical(armsLowChamber);
-        reachedVerticalBasketAdjust = false;
         basket = false;
         chamber = false;
-    }
-
-    public static void clawPositionLowBasket(){
-        rotateClawToCurrentMiddle();
-        queueNextPositionVertical(armsLowBasket);
         reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(armsLowChamber);
+    }
+    public static void clawPositionDeliverSample1(){
+        basket = false;
+        chamber = false;
+        reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(deliverSample1);
+    }
+    public static void clawPositionLowBasket(){
         basket = true;
         chamber = false;
+        reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(armsLowBasket);
     }
 
     public static void clawPositionHighBasket(){
-        rotateClawToCurrentMiddle();
-        queueNextPositionVertical(armsHighBasket);
-        reachedVerticalBasketAdjust = false;
         basket = true;
         chamber = false;
+        reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(armsHighBasket + armsHighBasketMaxAdjust);
     }
 
     public static void clawPositionPark(){
-        rotateClawToCurrentMiddle();
-        queueNextPositionVertical(armsPark);
-        reachedVerticalBasketAdjust = false;
         basket = false;
         chamber = false;
+        reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(armsPark);
+    }
+
+    public static void clawPositionUnPark(){
+        basket = false;
+        chamber = false;
+        reachedVerticalBasketAdjust = false;
+        rotateClawToCurrentMiddle();
+        queueNextPositionVertical(armsUnPark);
     }
 
     public static void closeClawSample(){Hardware.claw.setPosition(clawClosedSample);}
@@ -228,14 +276,21 @@ public class Claw {
     public static void openClawScore(){Hardware.claw.setPosition(clawOpenScore);}
 
     public static void clawInit(){
+        configClaw = clawClosed;
+        configVertical = armsInit;
+        configHorizontal = 0;
+        armsHighBasketMaxAdjust = 0.14;
         closeClaw();
         clawPositionInit();
+        horizontalAdjusting = true;
         preciseAdjusting = false;
     }
 
     public static void clawInitAuto(){
         closeClawSample();
         clawPositionInit();
+        armsHighBasketMaxAdjust = 0.17;
+        horizontalAdjusting = true;
         preciseAdjusting = true;
     }
 

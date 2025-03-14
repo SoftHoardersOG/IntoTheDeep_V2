@@ -28,14 +28,14 @@ public class OdometryPinpointComputerLocalizer implements Localizer {
 
     public OdometryPinpointComputerLocalizer(HardwareMap hardwareMap){
         odometry = hardwareMap.get(GoBildaPinpointDriver.class, "odometry");
+
+        // de configurat in functie de hardware
+
         odometry.setOffsets(-23.5, -75.2);
         odometry.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        initialPose = new Pose2d(0, 0, 0);
-        travelOffset = new Pose2d(0, 0, 0);
-        previousRawAngle = 0;
-        odometry.resetPosAndIMU();
-        odometry.update();
+
+        setPoseEstimate(new Pose2d(0, 0, 0));
     }
 
     public void updateTravelledOffset(){
@@ -52,6 +52,11 @@ public class OdometryPinpointComputerLocalizer implements Localizer {
 
         travelOffset = new Pose2d(odometryPose.getY(DistanceUnit.INCH) * X_MULTIPLIER, -odometryPose.getX(DistanceUnit.INCH) * Y_MULTIPLIER, travelOffset.getHeading() + delta);
 
+        Pose2D vel = odometry.getVelocity();
+        Pose2d velRR = new Pose2d(new Vector2d(vel.getY(DistanceUnit.INCH), -vel.getX(DistanceUnit.INCH)).rotated(initialPose.getHeading()), vel.getHeading(AngleUnit.RADIANS));
+
+        poseVelocity = velRR;
+
         previousRawAngle = rawAngle;
     }
 
@@ -61,12 +66,6 @@ public class OdometryPinpointComputerLocalizer implements Localizer {
 
         // Fetch external localization data
         updateTravelledOffset();
-
-        Pose2D vel = odometry.getVelocity();
-        Pose2d velRR = new Pose2d(new Vector2d(vel.getY(DistanceUnit.INCH), vel.getX(DistanceUnit.INCH)).rotated(initialPose.getHeading()), vel.getHeading(AngleUnit.RADIANS));
-
-        // Update velocity (use computed external velocity or estimate it)
-        poseVelocity = velRR;
 
         // Update pose estimate
         poseEstimate = initialPose.plus(new Pose2d(travelOffset.vec().rotated(initialPose.getHeading()), travelOffset.getHeading()));

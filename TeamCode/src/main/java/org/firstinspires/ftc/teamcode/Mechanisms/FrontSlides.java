@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
@@ -9,24 +11,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Timer;
 
+@Config
 public class FrontSlides {
 
-    public static boolean init = true;
+    public static int configExtend;
+
+    private static boolean init = true;
     private static boolean transfer = false;
-    public static boolean calibrating = false;
+    private static boolean calibrating = false;
 
     private static int slidesInit = 0; // 5
-    public static int slidesTransfer = -1;
-    private static int slidesExtended = 570;
+    private static int slidesTransfer = -1;
+    private static int slidesExtended = 670;
 
     private static double power = 1;
 
     private static OneTap sensorDetect = new OneTap();
 
     public static void update(){
-//        updatePositions();
-
-//          start();
         if (Hardware.frontSlides.getPower() != power){
             Hardware.frontSlides.setPower(power);
         }
@@ -37,19 +39,19 @@ public class FrontSlides {
         else {
             stop();
         }
-//        if(Hardware.frontSlides.getCurrentPosition() - slidesInit <= 1 && init){
-//            Hardware.frontSlides.setTargetPosition(slidesInit);
-//        }
-//        else if(Hardware.frontSlides.getCurrentPosition() - slidesTransfer <= 1 && transfer){
-//            Hardware.frontSlides.setTargetPosition(slidesTransfer);
-//        }
+    }
+
+    public static void updateConfig(){
+        Hardware.frontSlides.setPower(1);
+        Hardware.frontSlides.setTargetPosition(configExtend);
     }
 
     public static void init(){
         init = true;
         slidesInit = 0;
         slidesTransfer = -1;
-        slidesExtended = 570;
+        slidesExtended = 670;
+        configExtend = slidesInit;
         power = 1;
         Hardware.frontSlides.setTargetPosition(slidesInit - 700);
         ActionDelayer.condition(FrontSlides :: reachedInit, FrontSlides :: updatePositions);
@@ -176,7 +178,7 @@ public class FrontSlides {
     }
 
     public static void extend(float dt){
-        Hardware.frontSlides.setTargetPosition(slidesExtended + 50); // position
+        Hardware.frontSlides.setTargetPosition(slidesExtended); // position
         power = 1;
         init = false;
         transfer = false;

@@ -26,6 +26,9 @@ public class Potentiometers {
     public static boolean intakeUpDownCloseToTransfer(){
         return Hardware.potentiometer.getVoltage() > 1.4;
     }
+    public static boolean intakeUpDownInTransferPrepare(){
+        return Hardware.potentiometer.getVoltage() > 1.9;
+    }
     public static boolean intakeUpDownInTransfer(){
         return Hardware.potentiometer.getVoltage() > 2.1;
     }

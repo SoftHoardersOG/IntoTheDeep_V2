@@ -7,8 +7,10 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 
 //import org.firstinspires.ftc.teamcode.Mechanisms.BackSlides;
+import org.firstinspires.ftc.teamcode.Mechanisms.BackSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Claw;
 import org.firstinspires.ftc.teamcode.Mechanisms.Climb;
+import org.firstinspires.ftc.teamcode.Hardware.ColorSensor;
 import org.firstinspires.ftc.teamcode.Mechanisms.FrontSlides;
 import org.firstinspires.ftc.teamcode.Mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.Mechanisms.Sweeper;
@@ -17,6 +19,8 @@ import org.firstinspires.ftc.teamcode.TeleOp.Movement;
 import org.firstinspires.ftc.teamcode.TeleOp.TelemetryManager;
 
 public class Initializations {
+    public static boolean unPark = false;
+
     public static void initTeleOp(Gamepad gamepad1, Gamepad gamepad2){
         ConditionChecker.timeToEnd = 10000;
         Movement.init(Hardware.drive);
@@ -26,6 +30,7 @@ public class Initializations {
         ActionManager.resetScoring();
         Climb.init();
         Claw.clawInit();
+        if (unPark) Claw.clawPositionUnPark();
         FrontSlides.init();
         Intake.init();
         Sweeper.init();
@@ -34,6 +39,7 @@ public class Initializations {
         ConditionChecker.opModeStopped = false;
     }
     public static void initAuto(HardwareMap hardwareMap, Telemetry telemetry, ColorSensor.AllianceColors color){
+        unPark = false;
         ConditionChecker.timeToEnd = 30000;
         ActionManager.transferFinishScoreCase = "";
         Hardware.init(hardwareMap, telemetry);
@@ -46,9 +52,12 @@ public class Initializations {
         Intake.init();
         Sweeper.init();
         ColorSensor.init(color);
+        Rumble.init();
         ConditionChecker.opModeStopped = false;
     }
     public static void startAuto(){
         Hardware.startAuto();
+        MatchTime.start();
+        BackSlides.transferPosition();
     }
 }

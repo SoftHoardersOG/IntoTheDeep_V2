@@ -1,24 +1,34 @@
 package org.firstinspires.ftc.teamcode.Mechanisms;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.teamcode.Hardware.Hardware;
 import org.firstinspires.ftc.teamcode.Utils.ActionDelayer;
 
+@Config
 public class BackSlides {
 
     public static boolean scoringPosition;
 
-    private static int slidesInit = -3;
+    public static int configPosition;
+
+    private static int slidesInit = 0;
     private static int slidesInitLower = 35;
     public static int slidesTransfer = 0;
-    private static int basketLevels[] = {-425, -1150};
-    private static int chamberLevels[] = {-154, -275};
+    private static int slidesClimb = 7;
+    private static int basketLevels[] = {-425, -1260};
+    private static int chamberLevels[] = {-154, -299};
+    private static int deliverSamplePos = -150;
     private static int climbTilt = -700;
 
     public static void initPosition(){
-//        Hardware.backSlides.setPower(1);
-//        lowerSlidesGradual();
+        configPosition = slidesInit;
         Hardware.backSlides.setTargetPosition(slidesInit);
         scoringPosition = false;
+    }
+
+    public static void updateConfig(){
+        Hardware.backSlides.setTargetPosition(configPosition);
     }
 
     public static void climbTiltPercentage(double p){
@@ -39,6 +49,18 @@ public class BackSlides {
         Hardware.backSlides.setPower(1);
         Hardware.backSlides.setTargetPosition(slidesTransfer);
         scoringPosition = false;
+    }
+
+    public static void climbPosition(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(slidesClimb);
+        scoringPosition = false;
+    }
+
+    public static void deliverSample(){
+        Hardware.backSlides.setPower(1);
+        Hardware.backSlides.setTargetPosition(deliverSamplePos);
+        scoringPosition = true;
     }
 
     public static void lowBasket(){
